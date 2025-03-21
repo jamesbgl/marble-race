@@ -709,7 +709,8 @@ export function Level() {
   
   return (
     <>
-      <color attach="background" args={['#130413']} />
+      <color attach="background" args={['#1a1a2e']} />
+      <fog attach="fog" args={['#1a1a2e', 10, 200]} />
       <ambientLight intensity={0.75} />
       <EffectComposer>
         <DepthOfField

@@ -222,10 +222,10 @@ export default function Player() {
           position={[0, 1, 0]}
           name="marble"
         >
-          <mesh>
-            <sphereGeometry args={[0.3, 64, 64]} />
-            <meshPhongMaterial color='#DFFD51' shininess={100} />
-          </mesh>
+          <mesh castShadow>
+              <icosahedronGeometry args={[0.3, 1]} />
+              <meshStandardMaterial flatShading color='#DFFD51' />
+            </mesh>
         </RigidBody>
       )}
     </>
