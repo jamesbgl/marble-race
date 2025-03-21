@@ -7,8 +7,8 @@ export default function TrajectoryLine({ aimDirection, visible }) {
   const points = useMemo(() => {
     const linePoints = []
     const segments = 50 // Number of segments in the line
-    const segmentLength = 0.2 // Length of each segment
-    const launchSpeed = 15 // Should match the launch speed in Player.js
+    const segmentLength = 1.2 // Increased length of each segment to match higher speeds
+    const launchSpeed = 30 // Should match the minimum launch speed in Player.js
     const launchAngle = aimDirection * Math.PI / 6
     
     // Initial velocity components
@@ -40,7 +40,7 @@ export default function TrajectoryLine({ aimDirection, visible }) {
   return (
     <line ref={line} visible={visible}>
       <bufferGeometry />
-      <lineBasicMaterial color="white" opacity={0.5} transparent={true} linewidth={1} />
+      <lineBasicMaterial color="#333333" opacity={0.8} transparent={true} linewidth={2} />
     </line>
   )
 } 

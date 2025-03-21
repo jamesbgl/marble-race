@@ -6,7 +6,7 @@ THREE.ColorManagement.legacyMode = false
 
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1)
 const floor1Material = new THREE.MeshStandardMaterial({
-  color: '#111111',
+  color: '#87CEEB', // Light blue color
   metalness: 0,
   roughness: 0,
 })
@@ -37,7 +37,7 @@ function BlockStart({ position = [0, 0, 0] }) {
         geometry={boxGeometry}
         material={floor1Material}
         position-y={-0.1}
-        scale={[4, 0.2, 4]}
+        scale={[8, 0.2, 16]}
         receiveShadow
       />
     </group>
@@ -64,11 +64,10 @@ function BlockEnd({ position = [0, 0, 0] }) {
       <mesh
         geometry={boxGeometry}
         material={floor1Material}
-        position-y={0}
-        scale={[4, 0.2, 4]}
+        position-y={-0.1}
+        scale={[8, 0.2, 16]}
         receiveShadow
       />
-
       <RigidBody
         type='fixed'
         colliders='hull'
@@ -89,7 +88,7 @@ function TrackBlock({ position = [0, 0, 0] }) {
         geometry={boxGeometry}
         material={floor1Material}
         position-y={-0.1}
-        scale={[4, 0.2, 4]}
+        scale={[8, 0.2, 16]}
         receiveShadow
       />
     </group>
@@ -100,30 +99,34 @@ function Bounds({ length = 1 }) {
   return (
     <>
       <RigidBody type='fixed' restitution={0.2} friction={0}>
+        {/* Left wall */}
         <mesh
-          position={[2.15, 0.75, -(length * 2) + 2]}
+          position={[4.15, 0.75, -(length * 8) + 2]}
           geometry={boxGeometry}
           material={wallMaterial}
-          scale={[0.3, 1.5, 4 * length]}
+          scale={[0.3, 1.5, 16 * length]}
           castShadow
         />
+        {/* Right wall */}
         <mesh
-          position={[-2.15, 0.75, -(length * 2) + 2]}
+          position={[-4.15, 0.75, -(length * 8) + 2]}
           geometry={boxGeometry}
           material={wallMaterial}
-          scale={[0.3, 1.5, 4 * length]}
+          scale={[0.3, 1.5, 16 * length]}
           receiveShadow
         />
+        {/* End wall */}
         <mesh
-          position={[0, 0.75, -(length * 4) + 2]}
+          position={[0, 0.75, -(length * 16) + 2]}
           geometry={boxGeometry}
           material={wallMaterial}
-          scale={[4, 1.5, 0.3]}
+          scale={[8, 1.5, 0.3]}
           receiveShadow
         />
+        {/* Floor collider */}
         <CuboidCollider
-          args={[2, 0.1, 2 * length]}
-          position={[0, -0.1, -(length * 2) + 2]}
+          args={[4, 0.1, 16 * length]}
+          position={[0, -0.1, -(length * 8) + 2]}
           restitution={0.2}
           friction={1}
         />
@@ -132,16 +135,16 @@ function Bounds({ length = 1 }) {
   )
 }
 
-export function Level({ count = 5, seed = 0 }) {
+export function Level({ count = 5 }) {
   return (
     <>
       <BlockStart position={[0, 0, 0]} />
 
       {Array.from({ length: count }).map((_, index) => (
-        <TrackBlock key={index} position={[0, 0, -(index + 1) * 4]} />
+        <TrackBlock key={index} position={[0, 0, -(index + 1) * 16]} />
       ))}
 
-      <BlockEnd position={[0, 0, -(count + 1) * 4]} />
+      <BlockEnd position={[0, 0, -(count + 1) * 16]} />
 
       <Bounds length={count + 2} />
     </>

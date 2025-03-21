@@ -15,7 +15,10 @@ export default function Interface() {
             <div className="power-bar-container">
                 <div 
                     className="power-bar-fill"
-                    style={{ width: `${power * 100}%` }}
+                    style={{ 
+                        width: `${power * 100}%`,
+                        backgroundColor: power >= 0.3 ? '#4CAF50' : '#ff6b6b'
+                    }}
                 />
                 <div 
                     className="power-bar-threshold"
@@ -23,7 +26,7 @@ export default function Interface() {
                 />
                 {power < 0.3 && (
                     <div className="power-bar-text">
-                        Hold to charge
+                        Hold W or ↑ to charge (min 30% required)
                     </div>
                 )}
             </div>

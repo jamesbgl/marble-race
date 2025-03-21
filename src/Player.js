@@ -47,8 +47,8 @@ export default function Player() {
 
   const launchMarble = () => {
     if (!hasLaunched && powerLevel >= 0.3) { // Minimum 30% power required
-      const minSpeed = 15  // Increased from 10
-      const maxSpeed = 40  // Increased from 25
+      const minSpeed = 30  // Increased from 15
+      const maxSpeed = 120  // Increased from 40
       const launchSpeed = minSpeed + (maxSpeed - minSpeed) * powerLevel
       const launchAngle = aimDirection * Math.PI / 6 // Max 30 degrees left or right
       
@@ -125,7 +125,7 @@ export default function Player() {
     /**
      * Phases
      */
-    if (bodyPosition.z < -(blocksCount * 4 + 2)) end()
+    if (bodyPosition.z < -(blocksCount * 16 + 2)) end()
     if (bodyPosition.y < -4) restart()
 
     // Update power level while charging
