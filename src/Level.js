@@ -16,7 +16,7 @@ const wallMaterial = new THREE.MeshStandardMaterial({
   roughness: 0,
 })
 const startMaterial = new THREE.MeshBasicMaterial({
-  color: '#000000',
+  color: '#300931',
   transparent: false,
   opacity: 1,
 })
