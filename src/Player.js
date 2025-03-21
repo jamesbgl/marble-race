@@ -250,7 +250,7 @@ export default function Player() {
       >
         <mesh>
           <icosahedronGeometry args={[0.3, 1]} />
-          <meshStandardMaterial flatShading color='mediumpurple' />
+          <meshStandardMaterial flatShading color='#DFFD51' />
         </mesh>
       </RigidBody>
     </>
