@@ -117,33 +117,56 @@ function TrackSegments() {
 }
 
 function Bounds({ length = 1 }) {
+  const segmentLength = 16 // Each segment is 16 units long
+
   return (
     <>
       <RigidBody type='fixed' restitution={0.2} friction={0}>
-        {/* Left wall */}
-        <mesh
-          position={[4.15, 0.75, -(length * 8) + 2]}
-          geometry={boxGeometry}
-          material={wallMaterial}
-          scale={[0.3, 1.5, 16 * length]}
-          castShadow
-        />
-        {/* Right wall */}
-        <mesh
-          position={[-4.15, 0.75, -(length * 8) + 2]}
-          geometry={boxGeometry}
-          material={wallMaterial}
-          scale={[0.3, 1.5, 16 * length]}
-          receiveShadow
-        />
+        {/* Left wall segments */}
+        {multiplierSegments.map((segment, index) => (
+          <mesh
+            key={`left-${index}`}
+            position={[4.15, 0.75, -(index * segmentLength + 16)]}
+            geometry={boxGeometry}
+            material={new THREE.MeshStandardMaterial({
+              color: segment.color,
+              metalness: 0,
+              roughness: 0,
+            })}
+            scale={[0.3, 1.5, segmentLength]}
+            castShadow
+          />
+        ))}
+
+        {/* Right wall segments */}
+        {multiplierSegments.map((segment, index) => (
+          <mesh
+            key={`right-${index}`}
+            position={[-4.15, 0.75, -(index * segmentLength + 16)]}
+            geometry={boxGeometry}
+            material={new THREE.MeshStandardMaterial({
+              color: segment.color,
+              metalness: 0,
+              roughness: 0,
+            })}
+            scale={[0.3, 1.5, segmentLength]}
+            receiveShadow
+          />
+        ))}
+
         {/* End wall */}
         <mesh
           position={[0, 0.75, -(length * 16) + 2]}
           geometry={boxGeometry}
-          material={wallMaterial}
+          material={new THREE.MeshStandardMaterial({
+            color: multiplierSegments[multiplierSegments.length - 1].color,
+            metalness: 0,
+            roughness: 0,
+          })}
           scale={[8, 1.5, 0.3]}
           receiveShadow
         />
+
         {/* Floor collider */}
         <CuboidCollider
           args={[4, 0.1, 16 * length]}
