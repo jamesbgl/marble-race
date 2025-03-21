@@ -103,7 +103,7 @@ function BlockStart({ position = [0, 0, 0] }) {
   )
 }
 
-function MultiplierSegment({ position, value, color, textColor, segmentLength }) {
+function MultiplierSegment({ position, value, color, textColor, segmentLength, isActive }) {
   const [isHit, setIsHit] = useState(false)
   const materialRef = useRef()
 
@@ -113,6 +113,11 @@ function MultiplierSegment({ position, value, color, textColor, segmentLength })
     color3.multiplyScalar(1.4) // Make it 40% brighter
     return color3
   }, [color])
+
+  // Create active color (red)
+  const activeColor = useMemo(() => {
+    return new THREE.Color('#ff0000')
+  }, [])
 
   // Simplified component without collision detection
   return (
@@ -125,7 +130,7 @@ function MultiplierSegment({ position, value, color, textColor, segmentLength })
       >
         <meshPhongMaterial
           ref={materialRef}
-          color={isHit ? brightColor : color}
+          color={isActive ? activeColor : (isHit ? brightColor : color)}
           shininess={60}
           specular={new THREE.Color(0x444444)}
         />
@@ -150,6 +155,7 @@ function TrackSegments() {
   const segmentLength = 16 // Each segment is 16 units long
   const setCurrentMultiplier = useGame((state) => state.setCurrentMultiplier)
   const phase = useGame((state) => state.phase)
+  const [activeSegment, setActiveSegment] = useState(-1)
 
   // Track the marble's position and update the multiplier
   useFrame((state) => {
@@ -159,11 +165,11 @@ function TrackSegments() {
         // Get the marble's Z position (negated because track goes in negative Z)
         const marbleZ = -marble.position.z
         
-        // Calculate which segment the marble is in
-        // Subtract 16 for initial offset, then divide by segment length
-        // Add 1 because the first segment starts at z=-16
-        const segmentIndex = Math.floor((marbleZ + segmentLength) / segmentLength) - 1
-        
+        // First segment starts at z=-16, each segment is 16 units
+        // If marble is at z=-20, that's 4 units into first segment (index 0)
+        // If marble is at z=-36, that's 4 units into second segment (index 1)
+        const segmentIndex = Math.floor((marbleZ - 8) / segmentLength)
+
         // Debug logging
         console.log({
           marbleZ,
@@ -171,12 +177,19 @@ function TrackSegments() {
           value: segmentIndex >= 0 && segmentIndex < multiplierSegments.length ? 
             multiplierSegments[segmentIndex].value : 'out of bounds'
         })
-
+        
         if (segmentIndex >= 0 && segmentIndex < multiplierSegments.length) {
           const currentValue = multiplierSegments[segmentIndex].value
           setCurrentMultiplier(currentValue)
+          setActiveSegment(segmentIndex)
+        } else {
+          setActiveSegment(-1)
+          setCurrentMultiplier(0)
         }
       }
+    } else {
+      setActiveSegment(-1)
+      setCurrentMultiplier(0)
     }
   })
 
@@ -190,6 +203,7 @@ function TrackSegments() {
           color={segment.color}
           textColor={segment.textColor}
           segmentLength={segmentLength}
+          isActive={index === activeSegment}
         />
       ))}
     </group>
