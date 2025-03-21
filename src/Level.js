@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import { CuboidCollider, RigidBody } from '@react-three/rapier'
 import { Float, Text, useGLTF, useTexture } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
+import { useRef } from 'react'
 
 THREE.ColorManagement.legacyMode = false
 
@@ -214,12 +216,53 @@ function Bounds({ length = 1 }) {
   )
 }
 
+function SpaceBackground() {
+  const meshRef = useRef()
+  const texture = useTexture('/marble-race/space.jpg')
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+  texture.repeat.set(10, 7)
+
+  // Rotate the space sphere more slowly
+  useFrame(() => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += 0.0002
+    }
+  })
+
+  return (
+    <>
+      {/* Space sphere */}
+      <mesh ref={meshRef}>
+        <sphereGeometry args={[50, 32, 32]} />
+        <meshPhongMaterial
+          map={texture}
+          side={THREE.DoubleSide}
+          color="#444444" // Adding a dark gray tint
+        />
+      </mesh>
+
+      {/* Lighting */}
+      <spotLight 
+        position={[-40, 60, -10]}
+        intensity={1.5} // Reduced from 2
+        color="#ffffff"
+      />
+      <spotLight 
+        position={[40, -60, 30]}
+        intensity={5} // Reduced from 1.5
+        color="#5192e9"
+      />
+    </>
+  )
+}
+
 export function Level() {
   // Calculate total segments: 1 start segment + multiplier segments
   const totalSegments = 1 + multiplierSegments.length
   
   return (
     <>
+      <SpaceBackground />
       <BlockStart position={[0, 0, 0]} />
       <TrackSegments />
       <Bounds length={totalSegments} />
