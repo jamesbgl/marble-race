@@ -74,7 +74,10 @@ function BlockStart({ position = [0, 0, 0] }) {
       {/* Base floor with color */}
       <mesh
         geometry={boxGeometry}
-        material={new THREE.MeshBasicMaterial({ color: '#300931' })}
+        material={new THREE.MeshPhongMaterial({ 
+          color: '#300931',
+          shininess: 60
+        })}
         position-y={-0.1}
         scale={[8, 0.2, 16]}
       />
@@ -100,11 +103,10 @@ function BlockStart({ position = [0, 0, 0] }) {
 }
 
 function MultiplierSegment({ position, value, color, textColor, segmentLength }) {
-  const material = new THREE.MeshStandardMaterial({
+  const material = new THREE.MeshPhongMaterial({
     color,
-    metalness: 0.3,
-    roughness: 0.4,
-    envMapIntensity: 0.5
+    shininess: 60,
+    specular: new THREE.Color(0x444444)
   })
 
   return (
@@ -157,9 +159,43 @@ function Bounds({ length = 1 }) {
   return (
     <>
       <RigidBody type='fixed' restitution={0.2} friction={0}>
+        {/* Left wall segments */}
+        {multiplierSegments.map((segment, index) => (
+          <mesh
+            key={`left-${index}`}
+            position={[4.15, 0.15, -(index * segmentLength + 16)]}
+            geometry={boxGeometry}
+            material={new THREE.MeshStandardMaterial({
+              color: segment.color,
+              metalness: 0.3,
+              roughness: 0.4,
+              envMapIntensity: 0.5
+            })}
+            scale={[0.3, 0.3, segmentLength]}
+            castShadow
+          />
+        ))}
+
+        {/* Right wall segments */}
+        {multiplierSegments.map((segment, index) => (
+          <mesh
+            key={`right-${index}`}
+            position={[-4.15, 0.15, -(index * segmentLength + 16)]}
+            geometry={boxGeometry}
+            material={new THREE.MeshStandardMaterial({
+              color: segment.color,
+              metalness: 0.3,
+              roughness: 0.4,
+              envMapIntensity: 0.5
+            })}
+            scale={[0.3, 0.3, segmentLength]}
+            receiveShadow
+          />
+        ))}
+
         {/* End wall */}
         <mesh
-          position={[0, 0.75, -(length * 16) + 2]}
+          position={[0, 0.15, -(length * 16) + 2]}
           geometry={boxGeometry}
           material={new THREE.MeshStandardMaterial({
             color: multiplierSegments[multiplierSegments.length - 1].color,
@@ -167,7 +203,7 @@ function Bounds({ length = 1 }) {
             roughness: 0.4,
             envMapIntensity: 0.5
           })}
-          scale={[8, 1.5, 0.3]}
+          scale={[8, 0.3, 0.3]}
           receiveShadow
         />
 
@@ -183,52 +219,14 @@ function Bounds({ length = 1 }) {
   )
 }
 
-function SpaceBackground() {
-  const meshRef = useRef()
-  const texture = useTexture('/marble-race/space.jpg')
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.set(20, 14)
-
-  // Rotate the space sphere more slowly
-  useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.0002
-    }
-  })
-
-  return (
-    <>
-      {/* Space sphere */}
-      <mesh ref={meshRef}>
-        <sphereGeometry args={[120, 32, 32]} />
-        <meshPhongMaterial
-          map={texture}
-          side={THREE.DoubleSide}
-          color="#444444"
-        />
-      </mesh>
-
-      {/* Lighting */}
-      <spotLight 
-        position={[-40, 60, -10]}
-        intensity={1.5}
-        color="#ffffff"
-      />
-      <spotLight 
-        position={[40, -60, 30]}
-        intensity={5}
-        color="#5192e9"
-      />
-    </>
-  )
-}
-
 export function Level() {
   // Calculate total segments: 1 start segment + multiplier segments
   const totalSegments = 1 + multiplierSegments.length
   
   return (
     <>
+      <color attach="background" args={['#130413']} />
+      <ambientLight intensity={0.75} />
       <EffectComposer>
         <DepthOfField
           focusDistance={0.01}
@@ -236,7 +234,6 @@ export function Level() {
           bokehScale={3}
         />
       </EffectComposer>
-      <SpaceBackground />
       <BlockStart position={[0, 0, 0]} />
       <TrackSegments />
       <Bounds length={totalSegments} />
