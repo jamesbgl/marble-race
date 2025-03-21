@@ -5,8 +5,8 @@ import { Float, Text, useGLTF } from '@react-three/drei'
 THREE.ColorManagement.legacyMode = false
 
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1)
-const floor1Material = new THREE.MeshStandardMaterial({
-  color: '#87CEEB', // Light blue color
+const plainMaterial = new THREE.MeshStandardMaterial({
+  color: '#FFFFFF',
   metalness: 0,
   roughness: 0,
 })
@@ -15,6 +15,28 @@ const wallMaterial = new THREE.MeshStandardMaterial({
   metalness: 0,
   roughness: 0,
 })
+const startMaterial = new THREE.MeshBasicMaterial({
+  color: '#000000',
+  transparent: false,
+  opacity: 1,
+})
+
+// Define multiplier segments (from the image)
+const multiplierSegments = [
+  { value: 100, color: '#E8B4B8' },
+  { value: 0.8, color: '#FFFFFF' },
+  { value: 50, color: '#E8B4B8' },
+  { value: 0.4, color: '#FFFFFF' },
+  { value: 20, color: '#E8B4B8' },
+  { value: 0.2, color: '#FFFFFF' },
+  { value: 80, color: '#E8B4B8' },
+  { value: 12, color: '#FFFFFF' },
+  { value: 4, color: '#E8B4B8' },
+  { value: 1.5, color: '#FFFFFF' },
+  { value: 0.8, color: '#E8B4B8' },
+  { value: 0.4, color: '#FFFFFF' },
+  { value: 0.2, color: '#E8B4B8' }
+]
 
 function BlockStart({ position = [0, 0, 0] }) {
   return (
@@ -35,10 +57,9 @@ function BlockStart({ position = [0, 0, 0] }) {
       </Float>
       <mesh
         geometry={boxGeometry}
-        material={floor1Material}
+        material={startMaterial}
         position-y={-0.1}
         scale={[8, 0.2, 16]}
-        receiveShadow
       />
     </group>
   )
@@ -57,7 +78,7 @@ function BlockEnd({ position = [0, 0, 0] }) {
       </Text>
       <mesh
         geometry={boxGeometry}
-        material={floor1Material}
+        material={plainMaterial}
         position-y={-0.1}
         scale={[8, 0.2, 16]}
         receiveShadow
@@ -66,16 +87,51 @@ function BlockEnd({ position = [0, 0, 0] }) {
   )
 }
 
-function TrackBlock({ position = [0, 0, 0] }) {
+function MultiplierSegment({ position, value, color, segmentLength }) {
+  const material = new THREE.MeshStandardMaterial({
+    color,
+    metalness: 0,
+    roughness: 0,
+  })
+
   return (
     <group position={position}>
       <mesh
         geometry={boxGeometry}
-        material={floor1Material}
+        material={material}
         position-y={-0.1}
-        scale={[8, 0.2, 16]}
+        scale={[8, 0.2, segmentLength]}
         receiveShadow
       />
+      <Text
+        font='/marble-race/bebas-neue-v9-latin-regular.woff'
+        scale={6}
+        position={[0, 0.01, 0]}
+        rotation-x={-Math.PI / 2}
+      >
+        {value}x
+        <meshBasicMaterial toneMapped={false} color="black" />
+      </Text>
+    </group>
+  )
+}
+
+function TrackSegments({ count = 5 }) {
+  const totalLength = count * 16
+  const segmentLength = totalLength / multiplierSegments.length // Remove +1 since we're not adding a start segment here
+
+  return (
+    <group position={[0, 0, -16]}> {/* Start after the black segment */}
+      {/* Multiplier segments */}
+      {multiplierSegments.map((segment, index) => (
+        <MultiplierSegment
+          key={index}
+          position={[0, 0, -(index * segmentLength)]}
+          value={segment.value}
+          color={segment.color}
+          segmentLength={segmentLength}
+        />
+      ))}
     </group>
   )
 }
@@ -124,13 +180,8 @@ export function Level({ count = 5 }) {
   return (
     <>
       <BlockStart position={[0, 0, 0]} />
-
-      {Array.from({ length: count }).map((_, index) => (
-        <TrackBlock key={index} position={[0, 0, -(index + 1) * 16]} />
-      ))}
-
+      <TrackSegments count={count} />
       <BlockEnd position={[0, 0, -(count + 1) * 16]} />
-
       <Bounds length={count + 2} />
     </>
   )
