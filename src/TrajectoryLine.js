@@ -15,16 +15,12 @@ export default function TrajectoryLine({ aimDirection, visible }) {
     const velocityX = Math.sin(launchAngle) * launchSpeed
     const velocityZ = -Math.cos(launchAngle) * launchSpeed
     
-    // Create points for the dotted line
+    // Create points for the trajectory line
     for (let i = 0; i < segments; i++) {
       const t = i * segmentLength // Time parameter
       const x = velocityX * t
       const z = velocityZ * t
-      
-      // Add point if it should be visible (creating dotted effect)
-      if (i % 2 === 0) {
-        linePoints.push(new THREE.Vector3(x, 0.3, z))
-      }
+      linePoints.push(new THREE.Vector3(x, 0.3, z))
     }
     
     return linePoints
@@ -38,9 +34,27 @@ export default function TrajectoryLine({ aimDirection, visible }) {
   }, [points])
 
   return (
-    <line ref={line} visible={visible}>
-      <bufferGeometry />
-      <lineBasicMaterial color="#333333" opacity={0.8} transparent={true} linewidth={2} />
-    </line>
+    <>
+      {/* Main bright line */}
+      <line ref={line} visible={visible}>
+        <bufferGeometry />
+        <lineBasicMaterial 
+          color="#FF0000" 
+          opacity={0.8} 
+          transparent={true} 
+          linewidth={4}
+        />
+      </line>
+      {/* Outer glow effect */}
+      <line visible={visible}>
+        <bufferGeometry points={points} />
+        <lineBasicMaterial 
+          color="#FF3333" 
+          opacity={0.4} 
+          transparent={true} 
+          linewidth={8}
+        />
+      </line>
+    </>
   )
 } 

@@ -23,20 +23,19 @@ const startMaterial = new THREE.MeshBasicMaterial({
 
 // Define multiplier segments (from the image)
 const multiplierSegments = [
-  { value: 100, color: '#E8B4B8' },
-  { value: 0.8, color: '#FFFFFF' },
-  { value: 50, color: '#E8B4B8' },
-  { value: 0.4, color: '#FFFFFF' },
-  { value: 20, color: '#E8B4B8' },
-  { value: 0.2, color: '#FFFFFF' },
-  { value: 80, color: '#E8B4B8' },
-  { value: 12, color: '#FFFFFF' },
-  { value: 4, color: '#E8B4B8' },
-  { value: 1.5, color: '#FFFFFF' },
-  { value: 0.8, color: '#E8B4B8' },
-  { value: 0.4, color: '#FFFFFF' },
-  { value: 0.2, color: '#E8B4B8' },
-  { value: 100, color: '#39FF14' } // Neon green final segment
+  { value: 0.2, color: '#1E1E1E', textColor: '#4ADE80' },
+  { value: 0.4, color: '#1E1E1E', textColor: '#4ADE80' },
+  { value: 0.8, color: '#1E1E1E', textColor: '#4ADE80' },
+  { value: 1.5, color: '#1E1E1E', textColor: '#4ADE80' },
+  { value: 4, color: '#1E1E1E', textColor: '#4ADE80' },
+  { value: 12, color: '#86EFAC', textColor: 'black' }, // Mint green
+  { value: 80, color: '#ECFCCB', textColor: 'black' }, // Yellow-green
+  { value: 0.2, color: '#1E1E1E', textColor: '#4ADE80' },
+  { value: 20, color: '#8B5CF6', textColor: 'white' },
+  { value: 0.4, color: '#1E1E1E', textColor: '#4ADE80' },
+  { value: 50, color: '#8B5CF6', textColor: 'white' }, // Purple
+  { value: 0.8, color: '#1E1E1E', textColor: '#4ADE80' }, // Dark with neon green text
+  { value: 100, color: '#FF7F5C', textColor: 'white' } // Orange
 ]
 
 function BlockStart({ position = [0, 0, 0] }) {
@@ -66,7 +65,7 @@ function BlockStart({ position = [0, 0, 0] }) {
   )
 }
 
-function MultiplierSegment({ position, value, color, segmentLength }) {
+function MultiplierSegment({ position, value, color, textColor, segmentLength }) {
   const material = new THREE.MeshStandardMaterial({
     color,
     metalness: 0,
@@ -83,13 +82,16 @@ function MultiplierSegment({ position, value, color, segmentLength }) {
         receiveShadow
       />
       <Text
-        font='/marble-race/bebas-neue-v9-latin-regular.woff'
-        scale={6}
+        font='/marble-race/midnight-sans-st-24.woff'
+        scale={3.2}
         position={[0, 0.01, 0]}
         rotation-x={-Math.PI / 2}
+        fontSize={1}
+        maxWidth={4}
+        textAlign="center"
       >
         {value}x
-        <meshBasicMaterial toneMapped={false} color="black" />
+        <meshBasicMaterial toneMapped={false} color={textColor} />
       </Text>
     </group>
   )
@@ -106,6 +108,7 @@ function TrackSegments() {
           position={[0, 0, -(index * segmentLength)]}
           value={segment.value}
           color={segment.color}
+          textColor={segment.textColor}
           segmentLength={segmentLength}
         />
       ))}
