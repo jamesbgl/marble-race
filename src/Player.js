@@ -248,7 +248,7 @@ export default function Player() {
         angularDamping={0.2}
         position={[0, 1, 0]}
       >
-        <mesh castShadow>
+        <mesh>
           <icosahedronGeometry args={[0.3, 1]} />
           <meshStandardMaterial flatShading color='mediumpurple' />
         </mesh>
