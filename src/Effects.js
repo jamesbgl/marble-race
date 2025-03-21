@@ -1,4 +1,5 @@
-import { SSR, DepthOfField, EffectComposer } from '@react-three/postprocessing'
+import { SSR, DepthOfField, EffectComposer, ChromaticAberration, Vignette, Noise } from '@react-three/postprocessing'
+import { BlendFunction } from 'postprocessing'
 
 export default function Effects() {
   return (
@@ -30,6 +31,19 @@ export default function Effects() {
         velocityResolutionScale={1}
       /> */}
       <DepthOfField focusDistance={0.01} focusLength={0.2} bokehScale={2} />
+      <ChromaticAberration
+        offset={[0.0005, 0.0005]} // Reduced to 5% aberration
+        blendFunction={BlendFunction.NORMAL}
+      />
+      <Vignette
+        darkness={0.9} // 90% vignette
+        offset={0.5}
+        blendFunction={BlendFunction.NORMAL}
+      />
+      <Noise
+        opacity={0.06} // 6% noise
+        blendFunction={BlendFunction.SOFT_LIGHT}
+      />
     </EffectComposer>
   )
 }

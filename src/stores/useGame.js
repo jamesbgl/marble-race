@@ -6,7 +6,7 @@ export default create(
     return {
       blocksCount: 10,
       blocksSeed: 0,
-      hasShownCourseOverview: false,
+      hasShownCourseOverview: true,
       power: 0,
       currentMultiplier: 0,
       finalMultiplier: 0,

@@ -18,11 +18,9 @@ export default function Player() {
   const [powerLevel, setPowerLevel] = useState(0)
   const [stopTimeout, setStopTimeout] = useState(null)
   const wasKeyPressed = useRef(false)
-  const [isAnimating, setIsAnimating] = useState(true)
-  const animationProgress = useRef(0)
-  const [showBall, setShowBall] = useState(false)
+  const [showBall, setShowBall] = useState(true)
 
-  const cameraPosition = useRef(new THREE.Vector3(0, 2, 4))
+  const cameraPosition = useRef(new THREE.Vector3(0, 1.65, 2.25))
   const cameraTarget = useRef(new THREE.Vector3(0, 0.25, 0))
 
   const start = useGame((state) => state.start)
@@ -30,7 +28,6 @@ export default function Player() {
   const restart = useGame((state) => state.restart)
   const blocksCount = useGame((state) => state.blocksCount)
   const hasShownCourseOverview = useGame((state) => state.hasShownCourseOverview)
-  const completeCourseOverview = useGame((state) => state.completeCourseOverview)
   const phase = useGame((state) => state.phase)
   const setPower = useGame((state) => state.setPower)
   const setCurrentMultiplier = useGame((state) => state.setCurrentMultiplier)
@@ -46,12 +43,9 @@ export default function Player() {
     setPower(0)
     setCurrentMultiplier(0)
     wasKeyPressed.current = false
-    setIsAnimating(true)
-    animationProgress.current = 0
-    setShowBall(false)
     
-    // Reset camera to initial position
-    cameraPosition.current.set(0, 2, 4)
+    // Reset camera to launch position
+    cameraPosition.current.set(0, 1.65, 2.25)
     cameraTarget.current.set(0, 0.25, 0)
     
     if (stopTimeout) {
@@ -95,7 +89,7 @@ export default function Player() {
 
     // Handle aiming
     const unsubscribeKeys = subscribeKeys((state) => {
-      if (!hasLaunched && hasShownCourseOverview) {
+      if (!hasLaunched) {
         if (state.leftward) {
           setAimDirection(Math.max(aimDirection - 0.02, -1))
         }
@@ -112,7 +106,7 @@ export default function Player() {
         clearTimeout(stopTimeout)
       }
     }
-  }, [hasShownCourseOverview, hasLaunched, aimDirection])
+  }, [hasLaunched, aimDirection])
 
   useFrame((state, delta) => {
     const keys = getKeys()
@@ -121,61 +115,24 @@ export default function Player() {
     /**
      * Camera
      */
-    if (isAnimating && !hasShownCourseOverview) {
-      animationProgress.current += delta * 0.33 // 3 seconds total (1/3 per second)
-      
-      if (animationProgress.current >= 1) {
-        animationProgress.current = 1
-        setIsAnimating(false)
-        completeCourseOverview()
-      }
+    const targetPosition = new THREE.Vector3(
+      bodyPosition.x,
+      bodyPosition.y + 0.65,
+      bodyPosition.z + 2.25
+    )
+    
+    const targetLookAt = new THREE.Vector3(
+      bodyPosition.x,
+      bodyPosition.y + 0.25,
+      bodyPosition.z
+    )
 
-      // Calculate camera position and target for the fly-through
-      const trackLength = 200 // Approximate length of the track
-      const startZ = -trackLength // Start at the back
-      const endZ = 0 // End at the start
-      const currentZ = startZ + (endZ - startZ) * animationProgress.current
+    // Smooth camera movement
+    cameraPosition.current.lerp(targetPosition, delta * 4)
+    cameraTarget.current.lerp(targetLookAt, delta * 4)
 
-      // Camera height varies during animation
-      const baseHeight = 2
-      const heightVariation = Math.sin(animationProgress.current * Math.PI) * 3
-      const currentHeight = baseHeight + heightVariation
-
-      // Camera distance varies during animation
-      const baseDistance = 4
-      const distanceVariation = Math.sin(animationProgress.current * Math.PI * 2) * 2
-      const currentDistance = baseDistance + distanceVariation
-
-      // Set camera position and target
-      cameraPosition.current.set(0, currentHeight, currentZ + currentDistance)
-      cameraTarget.current.set(0, 0.25, currentZ)
-
-      // Show the ball when camera is halfway through the animation
-      if (animationProgress.current > 0.5 && !showBall) {
-        setShowBall(true)
-        body.current.setTranslation({ x: 0, y: 1, z: 0 })
-      }
-    } else {
-      // Regular camera follow
-      const targetPosition = new THREE.Vector3(
-        bodyPosition.x,
-        bodyPosition.y + 0.65,
-        bodyPosition.z + 2.25
-      )
-      
-      const targetLookAt = new THREE.Vector3(
-        bodyPosition.x,
-        bodyPosition.y + 0.25,
-        bodyPosition.z
-      )
-
-      // Smooth camera movement
-      cameraPosition.current.lerp(targetPosition, delta * 4)
-      cameraTarget.current.lerp(targetLookAt, delta * 4)
-
-      state.camera.position.copy(cameraPosition.current)
-      state.camera.lookAt(cameraTarget.current)
-    }
+    state.camera.position.copy(cameraPosition.current)
+    state.camera.lookAt(cameraTarget.current)
 
     /**
      * Phases
@@ -183,7 +140,7 @@ export default function Player() {
     if (bodyPosition.y < -4) restart()
 
     // Handle power charging and launching
-    if (!hasLaunched && hasShownCourseOverview) {
+    if (!hasLaunched) {
       if (keys.forward) {
         if (!wasKeyPressed.current) {
           // Start charging sound when key is first pressed
@@ -257,7 +214,7 @@ export default function Player() {
     <>
       <TrajectoryLine 
         aimDirection={aimDirection} 
-        visible={!hasLaunched && hasShownCourseOverview} 
+        visible={!hasLaunched} 
       />
       {showBall && (
         <RigidBody
