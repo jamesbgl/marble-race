@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { CuboidCollider, RigidBody } from '@react-three/rapier'
-import { Float, Text, useGLTF } from '@react-three/drei'
+import { Float, Text, useGLTF, useTexture } from '@react-three/drei'
 
 THREE.ColorManagement.legacyMode = false
 
@@ -14,11 +14,6 @@ const wallMaterial = new THREE.MeshStandardMaterial({
   color: '#887777',
   metalness: 0,
   roughness: 0,
-})
-const startMaterial = new THREE.MeshBasicMaterial({
-  color: '#300931',
-  transparent: false,
-  opacity: 1,
 })
 
 // Define multiplier segments (from the image)
@@ -39,12 +34,16 @@ const multiplierSegments = [
 ]
 
 function BlockStart({ position = [0, 0, 0] }) {
+  const texture = useTexture('/marble-race/Logo_tagline.svg')
+  texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping
+  texture.minFilter = THREE.LinearFilter
+  texture.magFilter = THREE.LinearFilter
+  
   return (
     <group position={position}>
       <Float floatIntensity={0.25} rotationIntensity={0.25}>
         <Text
           font='/marble-race/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
-          
           scale={3}
           maxWidth={0.25}
           lineHeight={0.75}
@@ -57,7 +56,6 @@ function BlockStart({ position = [0, 0, 0] }) {
         </Text>
         <Text
           font='/marble-race/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
-          
           scale={1.75}
           maxWidth={0.25}
           lineHeight={0.75}
@@ -69,12 +67,31 @@ function BlockStart({ position = [0, 0, 0] }) {
           <meshBasicMaterial toneMapped={false} />
         </Text>
       </Float>
+      
+      {/* Base floor with color */}
       <mesh
         geometry={boxGeometry}
-        material={startMaterial}
+        material={new THREE.MeshBasicMaterial({ color: '#300931' })}
         position-y={-0.1}
         scale={[8, 0.2, 16]}
       />
+      
+      {/* SVG overlay */}
+      <mesh
+        position={[0, 0.01, -6]}
+        rotation-x={-Math.PI / 2}
+      >
+        <planeGeometry args={[6, 0.496]} />
+        <meshBasicMaterial
+          map={texture}
+          transparent={true}
+          opacity={0.9}
+          depthWrite={true}
+          depthTest={true}
+          side={THREE.DoubleSide}
+          alphaTest={0.1}
+        />
+      </mesh>
     </group>
   )
 }
