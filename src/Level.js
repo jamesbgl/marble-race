@@ -317,12 +317,52 @@ function MovingWall({ position, range, speed, horizontal = true }) {
   )
 }
 
+function SpinningWall({ position, speed }) {
+  const wall = useRef()
+  const timeOffset = useRef(Math.random() * Math.PI * 2)
+
+  useFrame((state) => {
+    if (wall.current) {
+      const time = state.clock.getElapsedTime()
+      const rotation = new THREE.Quaternion()
+      rotation.setFromEuler(new THREE.Euler(0, (time * speed + timeOffset.current), 0))
+      wall.current.setNextKinematicRotation(rotation)
+    }
+  })
+
+  return (
+    <RigidBody ref={wall} type="kinematicPosition" restitution={0.2} friction={0} position={position}>
+      <mesh
+        geometry={boxGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#9333EA',
+          shininess: 60,
+          specular: new THREE.Color(0x444444)
+        })}
+        scale={[3, 0.8, 0.3]}
+        castShadow
+      />
+    </RigidBody>
+  )
+}
+
 function MovingObstacles() {
   const segmentLength = 16
   
+  // Generate random x positions for spinning walls between -3 and 3
+  const spinningWallsX = useMemo(() => {
+    return Array(4).fill(0).map(() => (Math.random() * 4 - 2)) // Reduced range to keep walls more centered
+  }, [])
+  
+  // Calculate z positions to be evenly distributed across multiplier segments
+  // First multiplier segment starts at z=-16, and each is 16 units long
+  // We have 13 multiplier segments, so we'll distribute the spinning walls across this range
+  const totalLength = multiplierSegments.length * segmentLength
+  const spacing = totalLength / 5 // Divide the track into 5 sections to place 4 walls
+  
   return (
     <>
-      {/* Horizontal moving walls - keeping within track boundaries (-3.5 to +3.5) */}
+      {/* Existing horizontal moving walls */}
       <MovingWall 
         position={[0, 0.5, -32]} 
         range={3} 
@@ -358,6 +398,24 @@ function MovingObstacles() {
         range={2.8} 
         speed={2}
         horizontal={true}
+      />
+
+      {/* Spinning walls - evenly distributed across multiplier segments */}
+      <SpinningWall 
+        position={[spinningWallsX[0], 0.5, -(32 + spacing)]} 
+        speed={2}
+      />
+      <SpinningWall 
+        position={[spinningWallsX[1], 0.5, -(32 + spacing * 2)]} 
+        speed={-2.5}
+      />
+      <SpinningWall 
+        position={[spinningWallsX[2], 0.5, -(32 + spacing * 3)]} 
+        speed={3}
+      />
+      <SpinningWall 
+        position={[spinningWallsX[3], 0.5, -(32 + spacing * 4)]} 
+        speed={-2.2}
       />
     </>
   )
