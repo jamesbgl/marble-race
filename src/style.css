@@ -48,7 +48,7 @@ body,
 
 .power-bar-container {
   position: absolute;
-  bottom: 10%;
+  bottom: 15%;
   left: 50%;
   transform: translateX(-50%);
   width: 400px;
@@ -232,7 +232,8 @@ body,
 .balance {
   position: fixed;
   top: 20px;
-  left: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.8);
   padding: 10px 20px;
   border-radius: 10px;
@@ -240,8 +241,7 @@ body,
   font-size: 24px;
   font-weight: bold;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  transition: transform 0.3s ease;
-  font-variant-numeric: tabular-nums;
+  z-index: 100;
 }
 
 .balance-change {
@@ -259,4 +259,73 @@ body,
   100% {
     transform: scale(1);
   }
+}
+
+.stake-controls {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  text-align: center;
+  color: white;
+  font-family: 'Midnight Sans', sans-serif;
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.stake-controls.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stake-adjust {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.stake-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.8);
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stake-button:hover {
+  background: rgba(74, 222, 128, 0.8);
+  transform: scale(1.1);
+}
+
+.stake-button:active {
+  transform: scale(0.9);
+}
+
+.stake-display {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 20px;
+  border-radius: 10px;
+  min-width: 120px;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+
+.stake-amount {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 5px;
+  color: #4ADE80;
+  text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
 }

@@ -29,6 +29,13 @@ export default create(
         set({ power })
       },
 
+      setStake: (adjustment) => {
+        set((state) => {
+          const newStake = Math.max(0.1, Math.round((state.stake + adjustment) * 10) / 10)
+          return { stake: newStake }
+        })
+      },
+
       setCurrentMultiplier: (multiplier) => {
         set({ currentMultiplier: multiplier })
       },

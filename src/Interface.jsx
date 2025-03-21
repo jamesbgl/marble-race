@@ -13,6 +13,7 @@ export default function Interface() {
     const finalMultiplier = useGame((state) => state.finalMultiplier)
     const winnings = useGame((state) => state.winnings)
     const balance = useGame((state) => state.balance)
+    const stake = useGame((state) => state.stake)
     const [displayedWinnings, setDisplayedWinnings] = useState(0)
     const [displayedBalance, setDisplayedBalance] = useState(50) // Start with initial balance
     const previousBalance = useRef(50)
@@ -129,7 +130,7 @@ export default function Interface() {
         )}
 
         {/* Power bar */}
-        {(phase === 'ready' && hasShownCourseOverview) && (
+        {(phase === 'ready') && (
             <div className="power-bar-container">
                 <div 
                     className="power-bar-fill"
@@ -143,5 +144,29 @@ export default function Interface() {
                 </div>
             </div>
         )}
+
+        {/* Stake controls */}
+        <div className={`stake-controls ${phase !== 'ready' ? 'fade-out' : ''}`}>
+            <div className="stake-adjust">
+                <button 
+                    className="stake-button" 
+                    onClick={() => useGame.getState().setStake(-0.1)}
+                    disabled={phase !== 'ready'}
+                >
+                    -
+                </button>
+                <div className="stake-display">
+                    STAKE
+                    <div className="stake-amount">${stake.toFixed(2)}</div>
+                </div>
+                <button 
+                    className="stake-button" 
+                    onClick={() => useGame.getState().setStake(0.1)}
+                    disabled={phase !== 'ready'}
+                >
+                    +
+                </button>
+            </div>
+        </div>
     </div>
 } 
