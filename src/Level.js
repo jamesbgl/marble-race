@@ -45,12 +45,6 @@ function BlockStart({ position = [0, 0, 0] }) {
 }
 
 function BlockEnd({ position = [0, 0, 0] }) {
-  const hamburger = useGLTF('/marble-race/hamburger.glb')
-
-  hamburger.scene.children.forEach((mesh) => {
-    mesh.castShadow = true
-  })
-
   return (
     <group position={position}>
       <Text
@@ -68,15 +62,6 @@ function BlockEnd({ position = [0, 0, 0] }) {
         scale={[8, 0.2, 16]}
         receiveShadow
       />
-      <RigidBody
-        type='fixed'
-        colliders='hull'
-        position={[0, 0.25, 0]}
-        restitution={0.2}
-        friction={0}
-      >
-        <primitive object={hamburger.scene} scale={0.2} />
-      </RigidBody>
     </group>
   )
 }
