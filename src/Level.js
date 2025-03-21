@@ -33,7 +33,7 @@ function BlockStart({ position = [0, 0, 0] }) {
     <group position={position}>
       <Float floatIntensity={0.25} rotationIntensity={0.25}>
         <Text
-          font='./bebas-neue-v9-latin-regular.woff'
+          font='/marble-race/bebas-neue-v9-latin-regular.woff'
           scale={4}
           maxWidth={0.25}
           lineHeight={0.75}
@@ -188,7 +188,7 @@ export function BlockAxe({ position = [0, 0, 0] }) {
 }
 
 function BlockEnd({ position = [0, 0, 0] }) {
-  const hamburger = useGLTF('./hamburger.glb')
+  const hamburger = useGLTF('/marble-race/hamburger.glb')
 
   hamburger.scene.children.forEach((mesh) => {
     mesh.castShadow = true
@@ -197,7 +197,7 @@ function BlockEnd({ position = [0, 0, 0] }) {
   return (
     <group position={position}>
       <Text
-        font='./bebas-neue-v9-latin-regular.woff'
+        font='/marble-race/bebas-neue-v9-latin-regular.woff'
         scale={8}
         position={[0, 2.25, 2]}
       >
