@@ -44,28 +44,57 @@ const multiplierSegments = [
 // Create audio context and sounds
 let audioContext
 let pingBuffer
+let chargeBuffer
+let fireBuffer
 let audioSources = []
+let chargeSource = null
+let chargeGainNode = null // Add global reference to charge gain node
 
 // Initialize audio with pre-created sources
 const initAudio = async () => {
   audioContext = new (window.AudioContext || window.webkitAudioContext)()
   
-  // Create a simple "ping" sound
+  // Create ping sound (existing)
   const sampleRate = audioContext.sampleRate
-  const duration = 0.08 // Reduced from 0.1 to 0.08 for snappier response
-  const numSamples = duration * sampleRate
+  const pingDuration = 0.08
+  const pingNumSamples = pingDuration * sampleRate
   
-  // Create an empty audio buffer
-  pingBuffer = audioContext.createBuffer(1, numSamples, sampleRate)
-  const channelData = pingBuffer.getChannelData(0)
+  pingBuffer = audioContext.createBuffer(1, pingNumSamples, sampleRate)
+  const pingData = pingBuffer.getChannelData(0)
   
-  // Generate a simple sine wave with faster exponential decay
-  for (let i = 0; i < numSamples; i++) {
+  for (let i = 0; i < pingNumSamples; i++) {
     const t = i / sampleRate
-    channelData[i] = Math.sin(2 * Math.PI * 440 * t) * Math.exp(-20 * t) // Increased decay rate
+    pingData[i] = Math.sin(2 * Math.PI * 440 * t) * Math.exp(-20 * t)
   }
 
-  // Pre-create a pool of audio sources
+  // Create fire sound (laser-like)
+  const fireDuration = 0.3
+  const fireNumSamples = fireDuration * sampleRate
+  fireBuffer = audioContext.createBuffer(1, fireNumSamples, sampleRate)
+  const fireData = fireBuffer.getChannelData(0)
+  
+  for (let i = 0; i < fireNumSamples; i++) {
+    const t = i / sampleRate
+    // Combine descending frequency with white noise for a "pew" effect
+    const freq = 1000 - (t * 2000)
+    const whiteNoise = Math.random() * 2 - 1
+    fireData[i] = (Math.sin(2 * Math.PI * freq * t) * 0.7 + whiteNoise * 0.3) * Math.exp(-5 * t)
+  }
+
+  // Create charge sound (rising tone)
+  const chargeDuration = 2.0
+  const chargeNumSamples = chargeDuration * sampleRate
+  chargeBuffer = audioContext.createBuffer(1, chargeNumSamples, sampleRate)
+  const chargeData = chargeBuffer.getChannelData(0)
+  
+  for (let i = 0; i < chargeNumSamples; i++) {
+    const t = i / sampleRate
+    // Rising frequency from 200Hz to 800Hz
+    const freq = 200 + (600 * (t / chargeDuration))
+    chargeData[i] = Math.sin(2 * Math.PI * freq * t) * 0.5
+  }
+
+  // Pre-create audio sources pool for ping sounds
   for (let i = 0; i < 3; i++) {
     const source = audioContext.createBufferSource()
     const gainNode = audioContext.createGain()
@@ -73,6 +102,59 @@ const initAudio = async () => {
     source.connect(gainNode)
     gainNode.connect(audioContext.destination)
     audioSources.push({ source, gainNode, inUse: false })
+  }
+}
+
+// Function to play the fire sound
+const playFireSound = (power) => {
+  if (!audioContext) return
+
+  const source = audioContext.createBufferSource()
+  const gainNode = audioContext.createGain()
+  
+  source.buffer = fireBuffer
+  gainNode.gain.value = 0.3
+  
+  // Higher power = higher pitch and volume
+  source.playbackRate.value = 0.8 + (power * 0.4)
+  gainNode.gain.value = 0.2 + (power * 0.2)
+  
+  source.connect(gainNode)
+  gainNode.connect(audioContext.destination)
+  source.start()
+}
+
+// Function to start the charging sound
+const startChargingSound = () => {
+  if (!audioContext || chargeSource) return
+
+  chargeSource = audioContext.createBufferSource()
+  chargeGainNode = audioContext.createGain() // Store gain node in global variable
+  
+  chargeSource.buffer = chargeBuffer
+  chargeSource.loop = true
+  chargeGainNode.gain.value = 0.1
+  
+  chargeSource.connect(chargeGainNode)
+  chargeGainNode.connect(audioContext.destination)
+  chargeSource.start()
+}
+
+// Function to update charging sound
+const updateChargingSound = (power) => {
+  if (!chargeSource || !chargeGainNode) return
+  
+  // Increase pitch and volume with power
+  chargeSource.playbackRate.value = 0.5 + (power * 1.5)
+  chargeGainNode.gain.value = 0.1 + (power * 0.2)
+}
+
+// Function to stop charging sound
+const stopChargingSound = () => {
+  if (chargeSource) {
+    chargeSource.stop()
+    chargeSource = null
+    chargeGainNode = null // Reset gain node reference
   }
 }
 
@@ -111,6 +193,15 @@ const playPing = (multiplier) => {
     audioSource.inUse = false
     audioSource.source = newSource
   }
+}
+
+// Export the sound functions
+export const soundEffects = {
+  playFireSound,
+  startChargingSound,
+  updateChargingSound,
+  stopChargingSound,
+  playPing
 }
 
 function BlockStart({ position = [0, 0, 0] }) {
@@ -262,7 +353,7 @@ function TrackSegments() {
           if (segmentIndex !== lastSegment.current) {
             const now = performance.now()
             if (now - lastPlayTime.current > 50) { // Debounce threshold of 50ms
-              playPing(currentValue)
+              soundEffects.playPing(currentValue)
               lastPlayTime.current = now
             }
             lastSegment.current = segmentIndex

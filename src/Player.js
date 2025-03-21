@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import useGame from './stores/useGame.js'
 import TrajectoryLine from './TrajectoryLine.js'
+import { soundEffects } from './Level.js'
 
 export default function Player() {
   const body = useRef()
@@ -60,10 +61,10 @@ export default function Player() {
 
   const launchMarble = () => {
     if (!hasLaunched && powerLevel >= 0.3) { // Minimum 30% power required
-      const minSpeed = 30  // Increased from 15
-      const maxSpeed = 120  // Increased from 40
+      const minSpeed = 30
+      const maxSpeed = 120
       const launchSpeed = minSpeed + (maxSpeed - minSpeed) * powerLevel
-      const launchAngle = aimDirection * Math.PI / 6 // Max 30 degrees left or right
+      const launchAngle = aimDirection * Math.PI / 6
       
       const velocityX = Math.sin(launchAngle) * launchSpeed
       const velocityZ = -Math.cos(launchAngle) * launchSpeed
@@ -75,6 +76,11 @@ export default function Player() {
       setPowerLevel(0)
       setPower(0)
       start()
+
+      // Play fire sound with current power level
+      soundEffects.playFireSound(powerLevel)
+      // Stop the charging sound
+      soundEffects.stopChargingSound()
     }
   }
 
@@ -169,10 +175,16 @@ export default function Player() {
     // Handle power charging and launching
     if (!hasLaunched && hasShownCourseOverview) {
       if (keys.forward) {
+        if (!wasKeyPressed.current) {
+          // Start charging sound when key is first pressed
+          soundEffects.startChargingSound()
+        }
         wasKeyPressed.current = true
         const newPower = Math.min(powerLevel + delta * 0.75, 1)
         setPowerLevel(newPower)
         setPower(newPower)
+        // Update charging sound pitch and volume
+        soundEffects.updateChargingSound(newPower)
       } else if (wasKeyPressed.current) {
         // Key was released
         wasKeyPressed.current = false
@@ -181,6 +193,8 @@ export default function Player() {
         } else {
           setPowerLevel(0)
           setPower(0)
+          // Stop charging sound if power was too low
+          soundEffects.stopChargingSound()
         }
       }
     }
@@ -221,6 +235,13 @@ export default function Player() {
       }
     }
   })
+
+  // Cleanup sounds on unmount
+  useEffect(() => {
+    return () => {
+      soundEffects.stopChargingSound()
+    }
+  }, [])
 
   return (
     <>
