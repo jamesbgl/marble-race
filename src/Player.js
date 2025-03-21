@@ -13,10 +13,6 @@ export default function Player() {
   const { rapier, world } = useRapier()
   const rapierWorld = world.raw()
 
-  const [overviewAnimation, setOverviewAnimation] = useState({ 
-    time: 0,
-    isComplete: false
-  })
   const [aimDirection, setAimDirection] = useState(0)
   const [hasLaunched, setHasLaunched] = useState(false)
   const [powerLevel, setPowerLevel] = useState(0)
@@ -24,6 +20,7 @@ export default function Player() {
   const wasKeyPressed = useRef(false)
   const [isAnimating, setIsAnimating] = useState(true)
   const animationProgress = useRef(0)
+  const [showBall, setShowBall] = useState(false)
 
   const cameraPosition = useRef(new THREE.Vector3(0, 2, 4))
   const cameraTarget = useRef(new THREE.Vector3(0, 0.25, 0))
@@ -43,7 +40,6 @@ export default function Player() {
     body.current.setLinvel({ x: 0, y: 0, z: 0 })
     body.current.setAngvel({ x: 0, y: 0, z: 0 })
     
-    setOverviewAnimation({ time: 0, isComplete: false })
     setAimDirection(0)
     setHasLaunched(false)
     setPowerLevel(0)
@@ -52,6 +48,7 @@ export default function Player() {
     wasKeyPressed.current = false
     setIsAnimating(true)
     animationProgress.current = 0
+    setShowBall(false)
     
     // Reset camera to initial position
     cameraPosition.current.set(0, 2, 4)
@@ -119,13 +116,13 @@ export default function Player() {
 
   useFrame((state, delta) => {
     const keys = getKeys()
-    const bodyPosition = body.current.translation()
+    const bodyPosition = body.current?.translation() || new THREE.Vector3(0, 1, 0)
 
     /**
      * Camera
      */
     if (isAnimating && !hasShownCourseOverview) {
-      animationProgress.current += delta * 0.5 // Adjust speed as needed
+      animationProgress.current += delta * 0.33 // 3 seconds total (1/3 per second)
       
       if (animationProgress.current >= 1) {
         animationProgress.current = 1
@@ -135,8 +132,8 @@ export default function Player() {
 
       // Calculate camera position and target for the fly-through
       const trackLength = 200 // Approximate length of the track
-      const startZ = 0
-      const endZ = -trackLength
+      const startZ = -trackLength // Start at the back
+      const endZ = 0 // End at the start
       const currentZ = startZ + (endZ - startZ) * animationProgress.current
 
       // Camera height varies during animation
@@ -152,6 +149,12 @@ export default function Player() {
       // Set camera position and target
       cameraPosition.current.set(0, currentHeight, currentZ + currentDistance)
       cameraTarget.current.set(0, 0.25, currentZ)
+
+      // Show the ball when camera is halfway through the animation
+      if (animationProgress.current > 0.5 && !showBall) {
+        setShowBall(true)
+        body.current.setTranslation({ x: 0, y: 1, z: 0 })
+      }
     } else {
       // Regular camera follow
       const targetPosition = new THREE.Vector3(
@@ -256,21 +259,23 @@ export default function Player() {
         aimDirection={aimDirection} 
         visible={!hasLaunched && hasShownCourseOverview} 
       />
-      <RigidBody
-        ref={body}
-        colliders='ball'
-        restitution={0.8}
-        friction={1}
-        linearDamping={0.2}
-        angularDamping={0.2}
-        position={[0, 1, 0]}
-        name="marble"
-      >
-        <mesh>
-          <sphereGeometry args={[0.3, 64, 64]} />
-          <meshPhongMaterial color='#DFFD51' shininess={100} />
-        </mesh>
-      </RigidBody>
+      {showBall && (
+        <RigidBody
+          ref={body}
+          colliders='ball'
+          restitution={0.8}
+          friction={1}
+          linearDamping={0.2}
+          angularDamping={0.2}
+          position={[0, 1, 0]}
+          name="marble"
+        >
+          <mesh>
+            <sphereGeometry args={[0.3, 64, 64]} />
+            <meshPhongMaterial color='#DFFD51' shininess={100} />
+          </mesh>
+        </RigidBody>
+      )}
     </>
   )
 }
