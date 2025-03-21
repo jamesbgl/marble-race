@@ -43,15 +43,29 @@ function BlockStart({ position = [0, 0, 0] }) {
     <group position={position}>
       <Float floatIntensity={0.25} rotationIntensity={0.25}>
         <Text
-          font='/marble-race/bebas-neue-v9-latin-regular.woff'
-          scale={4}
+          font='/marble-race/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
+          
+          scale={3}
           maxWidth={0.25}
           lineHeight={0.75}
           textAlign='right'
-          position={[0.75, 0.65, 0]}
+          position={[0.75, 0.7, 0]}
           rotation-y={-0.25}
         >
-          Crazy Marbles
+          CRAZY 
+          <meshBasicMaterial toneMapped={false} />
+        </Text>
+        <Text
+          font='/marble-race/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
+          
+          scale={1.75}
+          maxWidth={0.25}
+          lineHeight={0.75}
+          textAlign='right'
+          position={[0.85, 0.485, 0]}
+          rotation-y={-0.25}
+        >
+           MARBLES
           <meshBasicMaterial toneMapped={false} />
         </Text>
       </Float>
@@ -68,8 +82,9 @@ function BlockStart({ position = [0, 0, 0] }) {
 function MultiplierSegment({ position, value, color, textColor, segmentLength }) {
   const material = new THREE.MeshStandardMaterial({
     color,
-    metalness: 0,
-    roughness: 0,
+    metalness: 0.3,
+    roughness: 0.4,
+    envMapIntensity: 0.5
   })
 
   return (
@@ -82,7 +97,7 @@ function MultiplierSegment({ position, value, color, textColor, segmentLength })
         receiveShadow
       />
       <Text
-        font='/marble-race/midnight-sans-st-24.woff'
+        font='/marble-race/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
         scale={3.2}
         position={[0, 0.01, 0]}
         rotation-x={-Math.PI / 2}
@@ -130,8 +145,9 @@ function Bounds({ length = 1 }) {
             geometry={boxGeometry}
             material={new THREE.MeshStandardMaterial({
               color: segment.color,
-              metalness: 0,
-              roughness: 0,
+              metalness: 0.3,
+              roughness: 0.4,
+              envMapIntensity: 0.5
             })}
             scale={[0.3, 1.5, segmentLength]}
             castShadow
@@ -146,8 +162,9 @@ function Bounds({ length = 1 }) {
             geometry={boxGeometry}
             material={new THREE.MeshStandardMaterial({
               color: segment.color,
-              metalness: 0,
-              roughness: 0,
+              metalness: 0.3,
+              roughness: 0.4,
+              envMapIntensity: 0.5
             })}
             scale={[0.3, 1.5, segmentLength]}
             receiveShadow
@@ -160,8 +177,9 @@ function Bounds({ length = 1 }) {
           geometry={boxGeometry}
           material={new THREE.MeshStandardMaterial({
             color: multiplierSegments[multiplierSegments.length - 1].color,
-            metalness: 0,
-            roughness: 0,
+            metalness: 0.3,
+            roughness: 0.4,
+            envMapIntensity: 0.5
           })}
           scale={[8, 1.5, 0.3]}
           receiveShadow
