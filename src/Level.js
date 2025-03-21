@@ -219,6 +219,93 @@ function Bounds({ length = 1 }) {
   )
 }
 
+function MovingWall({ position, range, speed, horizontal = true }) {
+  const wall = useRef()
+  const timeOffset = useRef(Math.random() * Math.PI * 2)
+
+  useFrame((state) => {
+    if (wall.current) {
+      const time = state.clock.getElapsedTime()
+      const offset = Math.sin(time * speed + timeOffset.current)
+      
+      if (horizontal) {
+        wall.current.setNextKinematicTranslation({
+          x: position[0] + offset * range,
+          y: position[1],
+          z: position[2]
+        })
+      } else {
+        wall.current.setNextKinematicTranslation({
+          x: position[0],
+          y: position[1] + offset * range,
+          z: position[2]
+        })
+      }
+    }
+  })
+
+  return (
+    <RigidBody ref={wall} type="kinematicPosition" restitution={0.2} friction={0}>
+      <mesh
+        geometry={boxGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#FF0060',
+          shininess: 60,
+          specular: new THREE.Color(0x444444)
+        })}
+        scale={[0.3, 0.8, 2]}
+        castShadow
+      />
+    </RigidBody>
+  )
+}
+
+function MovingObstacles() {
+  const segmentLength = 16
+  
+  return (
+    <>
+      {/* Horizontal moving walls - keeping within track boundaries (-3.5 to +3.5) */}
+      <MovingWall 
+        position={[0, 0.5, -32]} 
+        range={3} 
+        speed={0.8}
+        horizontal={true}
+      />
+      <MovingWall 
+        position={[0, 0.5, -48]} 
+        range={3.2} 
+        speed={1.2}
+        horizontal={true}
+      />
+      <MovingWall 
+        position={[0, 0.5, -64]} 
+        range={2} 
+        speed={0.3}
+        horizontal={true}
+      />
+      <MovingWall 
+        position={[0, 0.5, -96]} 
+        range={3.3} 
+        speed={0.5}
+        horizontal={true}
+      />
+      <MovingWall 
+        position={[0, 0.5, -128]} 
+        range={3} 
+        speed={1.5}
+        horizontal={true}
+      />
+      <MovingWall 
+        position={[0, 0.5, -160]} 
+        range={2.8} 
+        speed={2}
+        horizontal={true}
+      />
+    </>
+  )
+}
+
 export function Level() {
   // Calculate total segments: 1 start segment + multiplier segments
   const totalSegments = 1 + multiplierSegments.length
@@ -236,6 +323,7 @@ export function Level() {
       </EffectComposer>
       <BlockStart position={[0, 0, 0]} />
       <TrackSegments />
+      <MovingObstacles />
       <Bounds length={totalSegments} />
     </>
   )
