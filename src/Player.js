@@ -249,8 +249,8 @@ export default function Player() {
         position={[0, 1, 0]}
       >
         <mesh>
-          <icosahedronGeometry args={[0.3, 1]} />
-          <meshStandardMaterial flatShading color='#DFFD51' />
+          <sphereGeometry args={[0.3, 64, 64]} />
+          <meshPhongMaterial color='#DFFD51' shininess={100} />
         </mesh>
       </RigidBody>
     </>
