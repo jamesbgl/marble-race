@@ -111,3 +111,32 @@ body,
 .controls .key.active {
   background: #ffffff99;
 }
+
+.status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-family: 'Midnight Sans', sans-serif;
+    font-size: 36px;
+    color: white;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.status-text {
+    padding: 10px 20px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.status-text.final {
+    background: rgba(74, 222, 128, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}

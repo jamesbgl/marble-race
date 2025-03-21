@@ -8,6 +8,8 @@ export default create(
       blocksSeed: 0,
       hasShownCourseOverview: false,
       power: 0,
+      currentMultiplier: 0,
+      finalMultiplier: 0,
 
       /**
        * Time
@@ -24,6 +26,14 @@ export default create(
         set({ power })
       },
 
+      setCurrentMultiplier: (multiplier) => {
+        set({ currentMultiplier: multiplier })
+      },
+
+      setFinalMultiplier: (multiplier) => {
+        set({ finalMultiplier: multiplier })
+      },
+
       start: () => {
         set((state) => {
           if (state.phase === 'ready')
@@ -32,26 +42,35 @@ export default create(
           return {}
         })
       },
+
       restart: () => {
         set((state) => {
           if (state.phase === 'playing' || state.phase === 'ended')
             return { 
               phase: 'ready', 
               blocksSeed: Math.random(), 
-              power: 0
+              power: 0,
+              currentMultiplier: 0,
+              finalMultiplier: 0
             }
 
           return {}
         })
       },
+
       end: () => {
         set((state) => {
           if (state.phase === 'playing')
-            return { phase: 'ended', endTime: Date.now() }
+            return { 
+              phase: 'ended', 
+              endTime: Date.now(),
+              finalMultiplier: state.currentMultiplier 
+            }
 
           return {}
         })
       },
+
       completeCourseOverview: () => {
         set(() => ({ hasShownCourseOverview: true }))
       }

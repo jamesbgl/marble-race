@@ -2,8 +2,9 @@ import * as THREE from 'three'
 import { CuboidCollider, RigidBody } from '@react-three/rapier'
 import { Float, Text, useGLTF, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useRef } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { EffectComposer, DepthOfField } from '@react-three/postprocessing'
+import useGame from './stores/useGame.js'
 
 THREE.ColorManagement.legacyMode = false
 
@@ -103,21 +104,32 @@ function BlockStart({ position = [0, 0, 0] }) {
 }
 
 function MultiplierSegment({ position, value, color, textColor, segmentLength }) {
-  const material = new THREE.MeshPhongMaterial({
-    color,
-    shininess: 60,
-    specular: new THREE.Color(0x444444)
-  })
+  const [isHit, setIsHit] = useState(false)
+  const materialRef = useRef()
 
+  // Create a brighter color for the hit state
+  const brightColor = useMemo(() => {
+    const color3 = new THREE.Color(color)
+    color3.multiplyScalar(1.4) // Make it 40% brighter
+    return color3
+  }, [color])
+
+  // Simplified component without collision detection
   return (
     <group position={position}>
       <mesh
         geometry={boxGeometry}
-        material={material}
         position-y={-0.1}
         scale={[8, 0.2, segmentLength]}
         receiveShadow
-      />
+      >
+        <meshPhongMaterial
+          ref={materialRef}
+          color={isHit ? brightColor : color}
+          shininess={60}
+          specular={new THREE.Color(0x444444)}
+        />
+      </mesh>
       <Text
         font='/marble-race/fonts/MIDNIGHT-SANS-ST-24-HEAVY-TRIAL.woff'
         scale={3.2}
@@ -136,6 +148,37 @@ function MultiplierSegment({ position, value, color, textColor, segmentLength })
 
 function TrackSegments() {
   const segmentLength = 16 // Each segment is 16 units long
+  const setCurrentMultiplier = useGame((state) => state.setCurrentMultiplier)
+  const phase = useGame((state) => state.phase)
+
+  // Track the marble's position and update the multiplier
+  useFrame((state) => {
+    if (phase === 'playing') {
+      const marble = state.scene.getObjectByName('marble')
+      if (marble) {
+        // Get the marble's Z position (negated because track goes in negative Z)
+        const marbleZ = -marble.position.z
+        
+        // Calculate which segment the marble is in
+        // Subtract 16 for initial offset, then divide by segment length
+        // Add 1 because the first segment starts at z=-16
+        const segmentIndex = Math.floor((marbleZ + segmentLength) / segmentLength) - 1
+        
+        // Debug logging
+        console.log({
+          marbleZ,
+          segmentIndex,
+          value: segmentIndex >= 0 && segmentIndex < multiplierSegments.length ? 
+            multiplierSegments[segmentIndex].value : 'out of bounds'
+        })
+
+        if (segmentIndex >= 0 && segmentIndex < multiplierSegments.length) {
+          const currentValue = multiplierSegments[segmentIndex].value
+          setCurrentMultiplier(currentValue)
+        }
+      }
+    }
+  })
 
   return (
     <group position={[0, 0, -16]}>
