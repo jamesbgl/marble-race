@@ -3,6 +3,7 @@ import { CuboidCollider, RigidBody } from '@react-three/rapier'
 import { Float, Text, useGLTF, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
+import { EffectComposer, DepthOfField } from '@react-three/postprocessing'
 
 THREE.ColorManagement.legacyMode = false
 
@@ -156,40 +157,6 @@ function Bounds({ length = 1 }) {
   return (
     <>
       <RigidBody type='fixed' restitution={0.2} friction={0}>
-        {/* Left wall segments */}
-        {multiplierSegments.map((segment, index) => (
-          <mesh
-            key={`left-${index}`}
-            position={[4.15, 0.75, -(index * segmentLength + 16)]}
-            geometry={boxGeometry}
-            material={new THREE.MeshStandardMaterial({
-              color: segment.color,
-              metalness: 0.3,
-              roughness: 0.4,
-              envMapIntensity: 0.5
-            })}
-            scale={[0.3, 1.5, segmentLength]}
-            castShadow
-          />
-        ))}
-
-        {/* Right wall segments */}
-        {multiplierSegments.map((segment, index) => (
-          <mesh
-            key={`right-${index}`}
-            position={[-4.15, 0.75, -(index * segmentLength + 16)]}
-            geometry={boxGeometry}
-            material={new THREE.MeshStandardMaterial({
-              color: segment.color,
-              metalness: 0.3,
-              roughness: 0.4,
-              envMapIntensity: 0.5
-            })}
-            scale={[0.3, 1.5, segmentLength]}
-            receiveShadow
-          />
-        ))}
-
         {/* End wall */}
         <mesh
           position={[0, 0.75, -(length * 16) + 2]}
@@ -220,7 +187,7 @@ function SpaceBackground() {
   const meshRef = useRef()
   const texture = useTexture('/marble-race/space.jpg')
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.set(10, 7)
+  texture.repeat.set(20, 14)
 
   // Rotate the space sphere more slowly
   useFrame(() => {
@@ -233,23 +200,23 @@ function SpaceBackground() {
     <>
       {/* Space sphere */}
       <mesh ref={meshRef}>
-        <sphereGeometry args={[50, 32, 32]} />
+        <sphereGeometry args={[120, 32, 32]} />
         <meshPhongMaterial
           map={texture}
           side={THREE.DoubleSide}
-          color="#444444" // Adding a dark gray tint
+          color="#444444"
         />
       </mesh>
 
       {/* Lighting */}
       <spotLight 
         position={[-40, 60, -10]}
-        intensity={1.5} // Reduced from 2
+        intensity={1.5}
         color="#ffffff"
       />
       <spotLight 
         position={[40, -60, 30]}
-        intensity={5} // Reduced from 1.5
+        intensity={5}
         color="#5192e9"
       />
     </>
@@ -262,6 +229,13 @@ export function Level() {
   
   return (
     <>
+      <EffectComposer>
+        <DepthOfField
+          focusDistance={0.01}
+          focalLength={0.2}
+          bokehScale={3}
+        />
+      </EffectComposer>
       <SpaceBackground />
       <BlockStart position={[0, 0, 0]} />
       <TrackSegments />
