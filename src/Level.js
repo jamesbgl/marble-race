@@ -78,7 +78,7 @@ function BlockStart({ position = [0, 0, 0] }) {
       
       {/* SVG overlay */}
       <mesh
-        position={[0, 0.01, -6]}
+        position={[0, 0.01, -4]}
         rotation-x={-Math.PI / 2}
       >
         <planeGeometry args={[6, 0.496]} />
