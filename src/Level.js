@@ -35,7 +35,8 @@ const multiplierSegments = [
   { value: 1.5, color: '#FFFFFF' },
   { value: 0.8, color: '#E8B4B8' },
   { value: 0.4, color: '#FFFFFF' },
-  { value: 0.2, color: '#E8B4B8' }
+  { value: 0.2, color: '#E8B4B8' },
+  { value: 100, color: '#39FF14' } // Neon green final segment
 ]
 
 function BlockStart({ position = [0, 0, 0] }) {
@@ -60,28 +61,6 @@ function BlockStart({ position = [0, 0, 0] }) {
         material={startMaterial}
         position-y={-0.1}
         scale={[8, 0.2, 16]}
-      />
-    </group>
-  )
-}
-
-function BlockEnd({ position = [0, 0, 0] }) {
-  return (
-    <group position={position}>
-      <Text
-        font='/marble-race/bebas-neue-v9-latin-regular.woff'
-        scale={8}
-        position={[0, 2.25, 2]}
-      >
-        FINISH
-        <meshBasicMaterial toneMapped={false} />
-      </Text>
-      <mesh
-        geometry={boxGeometry}
-        material={plainMaterial}
-        position-y={-0.1}
-        scale={[8, 0.2, 16]}
-        receiveShadow
       />
     </group>
   )
@@ -116,13 +95,11 @@ function MultiplierSegment({ position, value, color, segmentLength }) {
   )
 }
 
-function TrackSegments({ count = 5 }) {
-  const totalLength = count * 16
-  const segmentLength = totalLength / multiplierSegments.length // Remove +1 since we're not adding a start segment here
+function TrackSegments() {
+  const segmentLength = 16 // Each segment is 16 units long
 
   return (
-    <group position={[0, 0, -16]}> {/* Start after the black segment */}
-      {/* Multiplier segments */}
+    <group position={[0, 0, -16]}>
       {multiplierSegments.map((segment, index) => (
         <MultiplierSegment
           key={index}
@@ -176,13 +153,15 @@ function Bounds({ length = 1 }) {
   )
 }
 
-export function Level({ count = 5 }) {
+export function Level() {
+  // Calculate total segments: 1 start segment + multiplier segments
+  const totalSegments = 1 + multiplierSegments.length
+  
   return (
     <>
       <BlockStart position={[0, 0, 0]} />
-      <TrackSegments count={count} />
-      <BlockEnd position={[0, 0, -(count + 1) * 16]} />
-      <Bounds length={count + 2} />
+      <TrackSegments />
+      <Bounds length={totalSegments} />
     </>
   )
 }
