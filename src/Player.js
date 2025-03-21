@@ -155,14 +155,9 @@ export default function Player() {
       } else if (wasKeyPressed.current) {
         // Key was released
         wasKeyPressed.current = false
-        if (powerLevel >= 0.3) {
-          launchMarble()
-        } else {
-          setPowerLevel(0)
-          setPower(0)
-          // Stop charging sound if power was too low
-          soundEffects.stopChargingSound()
-        }
+        launchMarble()
+        // Stop charging sound
+        soundEffects.stopChargingSound()
       }
     }
 

@@ -36,8 +36,8 @@ export default function Effects() {
         blendFunction={BlendFunction.NORMAL}
       />
       <Vignette
-        darkness={0.9} // 90% vignette
-        offset={0.5}
+        darkness={0.8} // 90% vignette
+        offset={0.1}
         blendFunction={BlendFunction.NORMAL}
       />
       <Noise

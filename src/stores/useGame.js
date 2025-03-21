@@ -12,6 +12,7 @@ export default create(
       finalMultiplier: 0,
       stake: 1, // Fixed stake amount
       winnings: 0, // Track winnings
+      balance: 50, // Starting balance
 
       /**
        * Time
@@ -35,14 +36,19 @@ export default create(
       setFinalMultiplier: (multiplier) => {
         set((state) => ({ 
           finalMultiplier: multiplier,
-          winnings: state.stake * multiplier // Calculate winnings
+          winnings: state.stake * multiplier, // Calculate winnings
+          balance: state.balance + (state.stake * multiplier) // Add winnings to balance
         }))
       },
 
       start: () => {
         set((state) => {
           if (state.phase === 'ready')
-            return { phase: 'playing', startTime: Date.now() }
+            return { 
+              phase: 'playing', 
+              startTime: Date.now(),
+              balance: state.balance - state.stake // Deduct stake when launching
+            }
 
           return {}
         })
@@ -50,15 +56,19 @@ export default create(
 
       restart: () => {
         set((state) => {
-          if (state.phase === 'playing' || state.phase === 'ended')
+          if (state.phase === 'playing' || state.phase === 'ended') {
+            // If ball went out of bounds (phase is playing), refund the stake
+            const refund = state.phase === 'playing' ? state.stake : 0
             return { 
               phase: 'ready', 
               blocksSeed: Math.random(), 
               power: 0,
               currentMultiplier: 0,
               finalMultiplier: 0,
-              winnings: 0 // Reset winnings
+              winnings: 0,
+              balance: state.balance + refund // Add refund if ball went out of bounds
             }
+          }
 
           return {}
         })
@@ -71,7 +81,8 @@ export default create(
               phase: 'ended', 
               endTime: Date.now(),
               finalMultiplier: state.currentMultiplier,
-              winnings: state.stake * state.currentMultiplier // Calculate final winnings
+              winnings: state.stake * state.currentMultiplier,
+              balance: state.balance + (state.stake * state.currentMultiplier) // Add winnings to balance
             }
 
           return {}

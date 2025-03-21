@@ -574,30 +574,11 @@ function SpinningWall({ position, speed }) {
 }
 
 // Geometry for bollards
-const bollardGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.3, 32)
+const bollardGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.6, 32)
 
-function Bollard({ position, speed }) {
-  const bollard = useRef()
-  const timeOffset = useRef(Math.random() * Math.PI * 2)
-
-  useFrame((state) => {
-    if (bollard.current) {
-      const time = state.clock.getElapsedTime()
-      // Modified sine wave to create longer "down" time
-      const wave = Math.sin(time * speed + timeOffset.current)
-      // Only rise up if wave is above 0.5, creating longer down time
-      const offset = wave > 0.5 ? (wave - 0.5) * 2 : 0
-      
-      bollard.current.setNextKinematicTranslation({
-        x: position[0],
-        y: 0.01 + offset * 0.4, // Keep slightly above ground when down, rise up to 0.41
-        z: position[2]
-      })
-    }
-  })
-
+function Bollard({ position }) {
   return (
-    <RigidBody ref={bollard} type="kinematicPosition" restitution={0.2} friction={0}>
+    <RigidBody type="fixed" restitution={0.2} friction={0}>
       <mesh
         geometry={bollardGeometry}
         material={new THREE.MeshPhongMaterial({
@@ -605,13 +586,14 @@ function Bollard({ position, speed }) {
           shininess: 60,
           specular: new THREE.Color(0x444444)
         })}
+        position={[position[0], 0.3, position[2]]}
         castShadow
       />
     </RigidBody>
   )
 }
 
-function BollardRow({ zPosition, count = 3, speed }) {
+function BollardRow({ zPosition, count = 3 }) {
   const positions = useMemo(() => {
     // Generate random x positions between -2.5 and 2.5, but ensure they're spread out
     const spacing = 5 / (count - 1) // Total width of 5 units (-2.5 to 2.5)
@@ -628,7 +610,6 @@ function BollardRow({ zPosition, count = 3, speed }) {
         <Bollard
           key={index}
           position={[x, 0, zPosition]}
-          speed={speed + Math.random() * 0.2} // Add slight variation to speed
         />
       ))}
     </>
@@ -705,22 +686,18 @@ function MovingObstacles() {
       <BollardRow 
         zPosition={-56}
         count={3}
-        speed={0.6} // Slower
       />
       <BollardRow 
         zPosition={-88}
         count={4}
-        speed={1.2} // Medium
       />
       <BollardRow 
         zPosition={-120}
         count={3}
-        speed={0.8} // Medium-slow
       />
       <BollardRow 
         zPosition={-152}
         count={4}
-        speed={1.5} // Fast
       />
     </>
   )
