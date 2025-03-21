@@ -22,6 +22,8 @@ export default function Player() {
   const [powerLevel, setPowerLevel] = useState(0)
   const [stopTimeout, setStopTimeout] = useState(null)
   const wasKeyPressed = useRef(false)
+  const [isAnimating, setIsAnimating] = useState(true)
+  const animationProgress = useRef(0)
 
   const cameraPosition = useRef(new THREE.Vector3(0, 2, 4))
   const cameraTarget = useRef(new THREE.Vector3(0, 0.25, 0))
@@ -48,6 +50,8 @@ export default function Player() {
     setPower(0)
     setCurrentMultiplier(0)
     wasKeyPressed.current = false
+    setIsAnimating(true)
+    animationProgress.current = 0
     
     // Reset camera to initial position
     cameraPosition.current.set(0, 2, 4)
@@ -120,31 +124,34 @@ export default function Player() {
     /**
      * Camera
      */
-    if (!hasShownCourseOverview && !overviewAnimation.isComplete) {
-      // Course overview animation
-      const animationDuration = 4
-      overviewAnimation.time += delta
-      const progress = Math.min(overviewAnimation.time / animationDuration, 1)
-      const trackLength = blocksCount * 4
+    if (isAnimating && !hasShownCourseOverview) {
+      animationProgress.current += delta * 0.5 // Adjust speed as needed
       
-      const startPosition = new THREE.Vector3(0, 20, -trackLength / 2)
-      const startTarget = new THREE.Vector3(0, 0, -trackLength / 2)
-      const endPosition = new THREE.Vector3(0, 2, 4)
-      const endTarget = new THREE.Vector3(0, 0, 0)
-      
-      const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-      const easedProgress = ease(progress)
-      
-      startPosition.lerp(endPosition, easedProgress)
-      startTarget.lerp(endTarget, easedProgress)
-      
-      state.camera.position.copy(startPosition)
-      state.camera.lookAt(startTarget)
-      
-      if (progress >= 1) {
-        setOverviewAnimation(prev => ({ ...prev, isComplete: true }))
+      if (animationProgress.current >= 1) {
+        animationProgress.current = 1
+        setIsAnimating(false)
         completeCourseOverview()
       }
+
+      // Calculate camera position and target for the fly-through
+      const trackLength = 200 // Approximate length of the track
+      const startZ = 0
+      const endZ = -trackLength
+      const currentZ = startZ + (endZ - startZ) * animationProgress.current
+
+      // Camera height varies during animation
+      const baseHeight = 2
+      const heightVariation = Math.sin(animationProgress.current * Math.PI) * 3
+      const currentHeight = baseHeight + heightVariation
+
+      // Camera distance varies during animation
+      const baseDistance = 4
+      const distanceVariation = Math.sin(animationProgress.current * Math.PI * 2) * 2
+      const currentDistance = baseDistance + distanceVariation
+
+      // Set camera position and target
+      cameraPosition.current.set(0, currentHeight, currentZ + currentDistance)
+      cameraTarget.current.set(0, 0.25, currentZ)
     } else {
       // Regular camera follow
       const targetPosition = new THREE.Vector3(
