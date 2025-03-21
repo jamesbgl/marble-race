@@ -8,12 +8,7 @@ export default function Interface() {
 
   const restart = useGame((state) => state.restart)
   const phase = useGame((state) => state.phase)
-
-  const forward = useKeyboardControls((state) => state.forward)
-  const backward = useKeyboardControls((state) => state.backward)
-  const leftward = useKeyboardControls((state) => state.leftward)
-  const rightward = useKeyboardControls((state) => state.rightward)
-  const jump = useKeyboardControls((state) => state.jump)
+  const power = useGame((state) => state.power)
 
   useEffect(() => {
     const unsubscribeEffect = addEffect(() => {
@@ -30,7 +25,7 @@ export default function Interface() {
       elapsedTime /= 1000
       elapsedTime = elapsedTime.toFixed(2)
 
-      if (time.current) {
+      if (time.current && state.phase !== 'playing') {
         time.current.textContent = elapsedTime
       }
     })
@@ -40,7 +35,8 @@ export default function Interface() {
 
   return (
     <div className='interface'>
-      <div ref={time} className='time'>
+      {/* Only show timer when not playing */}
+      <div ref={time} className='time' style={{ display: phase === 'playing' ? 'none' : 'block' }}>
         0.00
       </div>
 
@@ -50,20 +46,24 @@ export default function Interface() {
         </div>
       )}
 
-      {/* Controls */}
-      <div className='controls'>
-        <div className='raw'>
-          <div className={`key ${forward ? 'active' : ''}`}></div>
+      {/* Power bar */}
+      {phase === 'ready' && (
+        <div className='power-bar-container'>
+          <div 
+            className='power-bar-fill' 
+            style={{ 
+              width: `${power * 100}%`,
+              backgroundColor: power >= 0.3 ? '#4CAF50' : '#ff6b6b'
+            }}
+          />
+          <div className='power-bar-threshold' style={{ left: '30%' }} />
+          {power < 0.3 && (
+            <div className='power-bar-text'>
+              Hold to charge (min 30% required)
+            </div>
+          )}
         </div>
-        <div className='raw'>
-          <div className={`key  ${leftward ? 'active' : ''}`}></div>
-          <div className={`key  ${backward ? 'active' : ''}`}></div>
-          <div className={`key  ${rightward ? 'active' : ''}`}></div>
-        </div>
-        <div className='raw'>
-          <div className={`key  ${jump ? 'active' : ''} large`}></div>
-        </div>
-      </div>
+      )}
     </div>
   )
 }

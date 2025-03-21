@@ -1,4 +1,4 @@
-import { Physics, Debug } from '@react-three/rapier'
+import { Physics } from '@react-three/rapier'
 import { Level } from './Level.js'
 import Lights from './Lights.js'
 import Player from './Player.js'
@@ -7,7 +7,7 @@ import useGame from './stores/useGame.js'
 
 export default function Experience() {
   const blocksCount = useGame((state) => state.blocksCount)
-  const blocksSeed = useGame((state) => state.blocksSeed)
+  const phase = useGame((state) => state.phase)
 
   return (
     <>
@@ -15,8 +15,8 @@ export default function Experience() {
       <Physics>
         {/* <Debug /> */}
         <Lights />
-        <Level count={blocksCount} seed={blocksSeed} />
-        <Player />
+        <Level count={blocksCount} />
+        {phase === 'ready' || phase === 'playing' ? <Player /> : null}
       </Physics>
 
       <Effects />

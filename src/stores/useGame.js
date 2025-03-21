@@ -6,6 +6,8 @@ export default create(
     return {
       blocksCount: 10,
       blocksSeed: 0,
+      hasShownCourseOverview: false,
+      power: 0,
 
       /**
        * Time
@@ -18,6 +20,10 @@ export default create(
        */
       phase: 'ready',
 
+      setPower: (power) => {
+        set({ power })
+      },
+
       start: () => {
         set((state) => {
           if (state.phase === 'ready')
@@ -29,7 +35,12 @@ export default create(
       restart: () => {
         set((state) => {
           if (state.phase === 'playing' || state.phase === 'ended')
-            return { phase: 'ready', blocksSeed: Math.random() }
+            return { 
+              phase: 'ready', 
+              blocksSeed: Math.random(), 
+              hasShownCourseOverview: false,
+              power: 0
+            }
 
           return {}
         })
@@ -42,6 +53,9 @@ export default create(
           return {}
         })
       },
+      completeCourseOverview: () => {
+        set(() => ({ hasShownCourseOverview: true }))
+      }
     }
   })
 )
