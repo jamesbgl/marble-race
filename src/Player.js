@@ -47,8 +47,8 @@ export default function Player() {
 
   const launchMarble = () => {
     if (!hasLaunched && powerLevel >= 0.3) { // Minimum 30% power required
-      const minSpeed = 10
-      const maxSpeed = 25
+      const minSpeed = 15  // Increased from 10
+      const maxSpeed = 40  // Increased from 25
       const launchSpeed = minSpeed + (maxSpeed - minSpeed) * powerLevel
       const launchAngle = aimDirection * Math.PI / 6 // Max 30 degrees left or right
       
@@ -209,10 +209,10 @@ export default function Player() {
       <RigidBody
         ref={body}
         colliders='ball'
-        restitution={0.2}
+        restitution={0.8}  // Increased from 0.2
         friction={1}
-        linearDamping={0.5}
-        angularDamping={0.5}
+        linearDamping={0.2}  // Reduced from 0.5 to maintain momentum better
+        angularDamping={0.2}  // Reduced from 0.5 to maintain spin better
         position={[0, 1, 0]}
       >
         <mesh castShadow>
