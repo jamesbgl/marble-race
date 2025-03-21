@@ -46,62 +46,90 @@ let audioContext
 let pingBuffer
 let chargeBuffer
 let fireBuffer
+let cashInBuffer
 let audioSources = []
 let chargeSource = null
 let chargeGainNode = null // Add global reference to charge gain node
 
-// Initialize audio with pre-created sources
+// Initialize audio context and load sounds
 const initAudio = async () => {
+  if (audioContext) return
+
   audioContext = new (window.AudioContext || window.webkitAudioContext)()
   
-  // Create ping sound (existing)
-  const sampleRate = audioContext.sampleRate
-  const pingDuration = 0.08
-  const pingNumSamples = pingDuration * sampleRate
-  
-  pingBuffer = audioContext.createBuffer(1, pingNumSamples, sampleRate)
-  const pingData = pingBuffer.getChannelData(0)
-  
-  for (let i = 0; i < pingNumSamples; i++) {
-    const t = i / sampleRate
-    pingData[i] = Math.sin(2 * Math.PI * 440 * t) * Math.exp(-20 * t)
-  }
+  try {
+    const sampleRate = audioContext.sampleRate
 
-  // Create fire sound (laser-like)
-  const fireDuration = 0.3
-  const fireNumSamples = fireDuration * sampleRate
-  fireBuffer = audioContext.createBuffer(1, fireNumSamples, sampleRate)
-  const fireData = fireBuffer.getChannelData(0)
-  
-  for (let i = 0; i < fireNumSamples; i++) {
-    const t = i / sampleRate
-    // Combine descending frequency with white noise for a "pew" effect
-    const freq = 1000 - (t * 2000)
-    const whiteNoise = Math.random() * 2 - 1
-    fireData[i] = (Math.sin(2 * Math.PI * freq * t) * 0.7 + whiteNoise * 0.3) * Math.exp(-5 * t)
-  }
+    // Create ping sound (existing)
+    const pingDuration = 0.08
+    const pingNumSamples = pingDuration * sampleRate
+    pingBuffer = audioContext.createBuffer(1, pingNumSamples, sampleRate)
+    const pingData = pingBuffer.getChannelData(0)
+    
+    for (let i = 0; i < pingNumSamples; i++) {
+      const t = i / sampleRate
+      pingData[i] = Math.sin(2 * Math.PI * 440 * t) * Math.exp(-20 * t)
+    }
 
-  // Create charge sound (rising tone)
-  const chargeDuration = 2.0
-  const chargeNumSamples = chargeDuration * sampleRate
-  chargeBuffer = audioContext.createBuffer(1, chargeNumSamples, sampleRate)
-  const chargeData = chargeBuffer.getChannelData(0)
-  
-  for (let i = 0; i < chargeNumSamples; i++) {
-    const t = i / sampleRate
-    // Rising frequency from 200Hz to 800Hz
-    const freq = 200 + (600 * (t / chargeDuration))
-    chargeData[i] = Math.sin(2 * Math.PI * freq * t) * 0.5
-  }
+    // Create fire sound (laser-like)
+    const fireDuration = 0.3
+    const fireNumSamples = fireDuration * sampleRate
+    fireBuffer = audioContext.createBuffer(1, fireNumSamples, sampleRate)
+    const fireData = fireBuffer.getChannelData(0)
+    
+    for (let i = 0; i < fireNumSamples; i++) {
+      const t = i / sampleRate
+      // Combine descending frequency with white noise for a "pew" effect
+      const freq = 1000 - (t * 2000)
+      const whiteNoise = Math.random() * 2 - 1
+      fireData[i] = (Math.sin(2 * Math.PI * freq * t) * 0.7 + whiteNoise * 0.3) * Math.exp(-5 * t)
+    }
 
-  // Pre-create audio sources pool for ping sounds
-  for (let i = 0; i < 3; i++) {
-    const source = audioContext.createBufferSource()
-    const gainNode = audioContext.createGain()
-    source.buffer = pingBuffer
-    source.connect(gainNode)
-    gainNode.connect(audioContext.destination)
-    audioSources.push({ source, gainNode, inUse: false })
+    // Create charge sound (rising tone)
+    const chargeDuration = 2.0
+    const chargeNumSamples = chargeDuration * sampleRate
+    chargeBuffer = audioContext.createBuffer(1, chargeNumSamples, sampleRate)
+    const chargeData = chargeBuffer.getChannelData(0)
+    
+    for (let i = 0; i < chargeNumSamples; i++) {
+      const t = i / sampleRate
+      // Rising frequency from 200Hz to 800Hz
+      const freq = 200 + (600 * (t / chargeDuration))
+      chargeData[i] = Math.sin(2 * Math.PI * freq * t) * 0.5
+    }
+
+    // Create cash-in sound (satisfying chime)
+    const cashInDuration = 0.5
+    const cashInNumSamples = cashInDuration * sampleRate
+    cashInBuffer = audioContext.createBuffer(1, cashInNumSamples, sampleRate)
+    const cashInData = cashInBuffer.getChannelData(0)
+    
+    for (let i = 0; i < cashInNumSamples; i++) {
+      const t = i / sampleRate
+      // Combine multiple frequencies for a rich chime sound
+      const freq1 = 880 // A5
+      const freq2 = 1108.73 // C#6
+      const freq3 = 1318.51 // E6
+      const envelope = Math.exp(-8 * t) // Quick decay
+      cashInData[i] = (
+        Math.sin(2 * Math.PI * freq1 * t) * 0.5 +
+        Math.sin(2 * Math.PI * freq2 * t) * 0.3 +
+        Math.sin(2 * Math.PI * freq3 * t) * 0.2
+      ) * envelope
+    }
+
+    // Create a pool of audio sources for ping sounds
+    for (let i = 0; i < 5; i++) {
+      const gainNode = audioContext.createGain()
+      gainNode.connect(audioContext.destination)
+      audioSources.push({
+        gainNode,
+        inUse: false,
+        source: null
+      })
+    }
+  } catch (error) {
+    console.error('Error initializing audio:', error)
   }
 }
 
@@ -195,13 +223,33 @@ const playPing = (multiplier) => {
   }
 }
 
+// Function to play the cash-in sound
+const playCashInSound = () => {
+  if (!audioContext || !cashInBuffer) return
+
+  const source = audioContext.createBufferSource()
+  source.buffer = cashInBuffer
+  
+  // Create a gain node for volume control
+  const gainNode = audioContext.createGain()
+  gainNode.gain.value = 0.3 // Adjust volume as needed
+  
+  // Connect nodes
+  source.connect(gainNode)
+  gainNode.connect(audioContext.destination)
+  
+  // Play the sound
+  source.start(0)
+}
+
 // Export the sound functions
 export const soundEffects = {
   playFireSound,
   startChargingSound,
   updateChargingSound,
   stopChargingSound,
-  playPing
+  playPing,
+  playCashInSound
 }
 
 function BlockStart({ position = [0, 0, 0] }) {

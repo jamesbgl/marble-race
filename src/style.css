@@ -140,3 +140,90 @@ body,
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
 }
+
+.winnings-display {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2rem 3rem;
+    border-radius: 1rem;
+    text-align: center;
+    color: white;
+    font-family: 'Midnight Sans', sans-serif;
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    pointer-events: none;
+    animation: pop-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.winnings-text {
+    font-size: 2rem;
+    opacity: 0.9;
+}
+
+.winnings-amount {
+    font-size: 4rem;
+    color: #4ADE80;
+    margin-top: 0.5rem;
+    font-weight: bold;
+    text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+    font-variant-numeric: tabular-nums;
+}
+
+.play-again-button {
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    font-size: 1.5rem;
+    background: #4ADE80;
+    border: none;
+    border-radius: 0.5rem;
+    color: black;
+    cursor: pointer;
+    font-family: 'Midnight Sans', sans-serif;
+    transition: all 0.3s ease;
+    pointer-events: auto;
+}
+
+.play-again-button:hover {
+    background: #22C55E;
+    transform: scale(1.05);
+}
+
+.play-again-button:active {
+    transform: scale(0.95);
+}
+
+@keyframes pop-in {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    top: -10px;
+    z-index: 999;
+    animation: fall 5s linear forwards;
+    pointer-events: none;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}

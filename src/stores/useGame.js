@@ -10,6 +10,8 @@ export default create(
       power: 0,
       currentMultiplier: 0,
       finalMultiplier: 0,
+      stake: 1, // Fixed stake amount
+      winnings: 0, // Track winnings
 
       /**
        * Time
@@ -31,7 +33,10 @@ export default create(
       },
 
       setFinalMultiplier: (multiplier) => {
-        set({ finalMultiplier: multiplier })
+        set((state) => ({ 
+          finalMultiplier: multiplier,
+          winnings: state.stake * multiplier // Calculate winnings
+        }))
       },
 
       start: () => {
@@ -51,7 +56,8 @@ export default create(
               blocksSeed: Math.random(), 
               power: 0,
               currentMultiplier: 0,
-              finalMultiplier: 0
+              finalMultiplier: 0,
+              winnings: 0 // Reset winnings
             }
 
           return {}
@@ -64,7 +70,8 @@ export default create(
             return { 
               phase: 'ended', 
               endTime: Date.now(),
-              finalMultiplier: state.currentMultiplier 
+              finalMultiplier: state.currentMultiplier,
+              winnings: state.stake * state.currentMultiplier // Calculate final winnings
             }
 
           return {}
