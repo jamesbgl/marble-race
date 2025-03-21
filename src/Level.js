@@ -97,7 +97,7 @@ function MultiplierSegment({ position, value, color, textColor, segmentLength })
         receiveShadow
       />
       <Text
-        font='/marble-race/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
+        font='/marble-race/fonts/MIDNIGHT-SANS-ST-24-HEAVY-TRIAL.woff'
         scale={3.2}
         position={[0, 0.01, 0]}
         rotation-x={-Math.PI / 2}
