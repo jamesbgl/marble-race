@@ -56,16 +56,27 @@ export default function Player() {
 
   const launchMarble = () => {
     if (!hasLaunched && powerLevel >= 0.3) { // Minimum 30% power required
-      const minSpeed = 30
-      const maxSpeed = 120
+      const minSpeed = 25 // Reduced from 30 for smoother start
+      const maxSpeed = 100 // Reduced from 120 for better control
       const launchSpeed = minSpeed + (maxSpeed - minSpeed) * powerLevel
       const launchAngle = aimDirection * Math.PI / 6
       
       const velocityX = Math.sin(launchAngle) * launchSpeed
       const velocityZ = -Math.cos(launchAngle) * launchSpeed
       
-      body.current.setLinvel({ x: velocityX, y: 0, z: velocityZ })
-      body.current.setAngvel({ x: -velocityZ * 2, y: 0, z: -velocityX * 2 })
+      // Smoother initial velocity
+      body.current.setLinvel({ 
+        x: velocityX, 
+        y: 0, 
+        z: velocityZ 
+      })
+      
+      // Reduced initial rotation for smoother start
+      body.current.setAngvel({ 
+        x: -velocityZ * 1.5, // Reduced from 2
+        y: 0, 
+        z: -velocityX * 1.5  // Reduced from 2
+      })
       
       setHasLaunched(true)
       setPowerLevel(0)
@@ -147,7 +158,8 @@ export default function Player() {
           soundEffects.startChargingSound()
         }
         wasKeyPressed.current = true
-        const newPower = Math.min(powerLevel + delta * 0.75, 1)
+        // Smoother power charging
+        const newPower = Math.min(powerLevel + delta * 0.5, 1) // Reduced from 0.75 for smoother charging
         setPowerLevel(newPower)
         setPower(newPower)
         // Update charging sound pitch and volume
@@ -215,10 +227,10 @@ export default function Player() {
         <RigidBody
           ref={body}
           colliders='ball'
-          restitution={0.8}
-          friction={1}
-          linearDamping={0.2}
-          angularDamping={0.2}
+          restitution={0.7} // Reduced from 0.8 for less bouncy collisions
+          friction={1.2} // Increased from 1 for better grip
+          linearDamping={0.15} // Reduced from 0.2 for smoother movement
+          angularDamping={0.15} // Reduced from 0.2 for smoother rotation
           position={[0, 1, 0]}
           name="marble"
         >

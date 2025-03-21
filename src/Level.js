@@ -574,7 +574,7 @@ function SpinningWall({ position, speed }) {
 }
 
 // Geometry for bollards
-const bollardGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.6, 32)
+const bollardGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 32)
 
 function Bollard({ position }) {
   return (
@@ -586,7 +586,7 @@ function Bollard({ position }) {
           shininess: 60,
           specular: new THREE.Color(0x444444)
         })}
-        position={[position[0], 0.3, position[2]]}
+        position={[position[0], 0.6, position[2]]}
         castShadow
       />
     </RigidBody>
@@ -709,6 +709,9 @@ export function Level() {
   
   return (
     <>
+      <color attach="background" args={['#130413']} />
+
+
       <color attach="background" args={['#1a1a2e']} />
       <fog attach="fog" args={['#1a1a2e', 10, 200]} />
       <ambientLight intensity={0.75} />
