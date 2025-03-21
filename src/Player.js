@@ -125,7 +125,6 @@ export default function Player() {
     /**
      * Phases
      */
-    if (bodyPosition.z < -(blocksCount * 16 + 2)) end()
     if (bodyPosition.y < -4) restart()
 
     // Handle power charging and launching
