@@ -5,13 +5,14 @@ export default function Interface() {
     const power = useGame((state) => state.power)
     const phase = useGame((state) => state.phase)
     const restart = useGame((state) => state.restart)
+    const hasShownCourseOverview = useGame((state) => state.hasShownCourseOverview)
 
     return <div className="interface">
         {/* Restart button */}
         { phase === 'ended' && <div className="restart" onClick={ restart }>RESTART</div> }
 
         {/* Power bar */}
-        { (phase === 'ready' || phase === 'playing') && (
+        { (phase === 'ready' && hasShownCourseOverview) && (
             <div className="power-bar-container">
                 <div 
                     className="power-bar-fill"

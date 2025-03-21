@@ -38,7 +38,6 @@ export default create(
             return { 
               phase: 'ready', 
               blocksSeed: Math.random(), 
-              hasShownCourseOverview: false,
               power: 0
             }
 

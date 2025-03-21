@@ -19,7 +19,8 @@ export default function Player() {
   const [aimDirection, setAimDirection] = useState(0) // -1 to 1 for direction
   const [hasLaunched, setHasLaunched] = useState(false)
   const [powerLevel, setPowerLevel] = useState(0)
-  const [isCharging, setIsCharging] = useState(false)
+  const [stopTimeout, setStopTimeout] = useState(null)
+  const wasKeyPressed = useRef(false)
 
   const [smoothedCameraPosition] = useState(() => new THREE.Vector3(10, 10, 10))
   const [smoothedCameraTarget] = useState(() => new THREE.Vector3())
@@ -41,8 +42,12 @@ export default function Player() {
     setAimDirection(0)
     setHasLaunched(false)
     setPowerLevel(0)
-    setIsCharging(false)
     setPower(0)
+    wasKeyPressed.current = false
+    if (stopTimeout) {
+      clearTimeout(stopTimeout)
+      setStopTimeout(null)
+    }
   }
 
   const launchMarble = () => {
@@ -73,24 +78,14 @@ export default function Player() {
       }
     )
 
-    // Handle aiming and power charging
+    // Handle aiming
     const unsubscribeKeys = subscribeKeys((state) => {
       if (!hasLaunched && hasShownCourseOverview) {
-        // Handle aiming
         if (state.leftward) {
           setAimDirection(Math.max(aimDirection - 0.02, -1))
         }
         if (state.rightward) {
           setAimDirection(Math.min(aimDirection + 0.02, 1))
-        }
-        // Start charging when forward key is pressed
-        if (state.forward && !isCharging) {
-          setIsCharging(true)
-        }
-        // Launch when forward key is released
-        if (!state.forward && isCharging) {
-          setIsCharging(false)
-          launchMarble()
         }
       }
     })
@@ -98,10 +93,15 @@ export default function Player() {
     return () => {
       unsubscribeKeys()
       unsubscribeReset()
+      if (stopTimeout) {
+        clearTimeout(stopTimeout)
+      }
     }
-  }, [hasShownCourseOverview, hasLaunched, aimDirection, isCharging, powerLevel])
+  }, [hasShownCourseOverview, hasLaunched, aimDirection])
 
   useFrame((state, delta) => {
+    const keys = getKeys()
+
     /**
      * Camera
      */
@@ -128,13 +128,46 @@ export default function Player() {
     if (bodyPosition.z < -(blocksCount * 16 + 2)) end()
     if (bodyPosition.y < -4) restart()
 
-    // Update power level while charging
-    if (isCharging && !hasLaunched) {
-      setPowerLevel(prev => {
-        const newPower = Math.min(prev + delta * 0.75, 1) // Takes about 1.33 seconds to fully charge
-        setPower(newPower) // Update the power in the game state
-        return newPower
-      })
+    // Handle power charging and launching
+    if (!hasLaunched && hasShownCourseOverview) {
+      if (keys.forward) {
+        wasKeyPressed.current = true
+        const newPower = Math.min(powerLevel + delta * 0.75, 1)
+        setPowerLevel(newPower)
+        setPower(newPower)
+      } else if (wasKeyPressed.current) {
+        // Key was released
+        wasKeyPressed.current = false
+        if (powerLevel >= 0.3) {
+          launchMarble()
+        } else {
+          setPowerLevel(0)
+          setPower(0)
+        }
+      }
+    }
+
+    // Check if ball has come to a stop
+    if (hasLaunched && phase === 'playing') {
+      const velocity = body.current.linvel()
+      const angularVel = body.current.angvel()
+      const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z)
+      const rotationSpeed = Math.sqrt(angularVel.x * angularVel.x + angularVel.y * angularVel.y + angularVel.z * angularVel.z)
+      
+      if (speed < 0.1 && rotationSpeed < 0.1) {
+        // Ball has essentially stopped
+        if (!stopTimeout) {
+          setStopTimeout(setTimeout(() => {
+            end()
+          }, 1000))
+        }
+      } else {
+        // Ball is still moving
+        if (stopTimeout) {
+          clearTimeout(stopTimeout)
+          setStopTimeout(null)
+        }
+      }
     }
 
     if (!hasShownCourseOverview && !overviewAnimation.isComplete) {
@@ -209,10 +242,10 @@ export default function Player() {
       <RigidBody
         ref={body}
         colliders='ball'
-        restitution={0.8}  // Increased from 0.2
+        restitution={0.8}
         friction={1}
-        linearDamping={0.2}  // Reduced from 0.5 to maintain momentum better
-        angularDamping={0.2}  // Reduced from 0.5 to maintain spin better
+        linearDamping={0.2}
+        angularDamping={0.2}
         position={[0, 1, 0]}
       >
         <mesh castShadow>
