@@ -1,9 +1,10 @@
 {
-  "name": "exercise",
-  "version": "1.0.0",
+  "name": "marble-race",
+  "private": true,
+  "version": "0.0.0",
   "description": "",
   "main": "index.js",
-  "homepage": "https://dvdjrnx.github.io/marble-race/",
+  "homepage": "https://dvdjrnx.github.io/",
   "scripts": {
     "dev": "react-scripts start",
     "build": "react-scripts build",

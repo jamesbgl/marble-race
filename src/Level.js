@@ -309,7 +309,7 @@ export const soundEffects = {
 }
 
 function BlockStart({ position = [0, 0, 0] }) {
-  const texture = useTexture('/marble-race/Logo_tagline.svg')
+  const texture = useTexture('/Logo_tagline.svg')
   texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping
   texture.minFilter = THREE.LinearFilter
   texture.magFilter = THREE.LinearFilter
@@ -454,7 +454,7 @@ function BlockStart({ position = [0, 0, 0] }) {
 
       <Float floatIntensity={0.25} rotationIntensity={0.25}>
         <Text
-          font='/marble-race/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
+          font='/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
           scale={3}
           maxWidth={0.25}
           lineHeight={0.75}
@@ -466,7 +466,7 @@ function BlockStart({ position = [0, 0, 0] }) {
           <meshBasicMaterial toneMapped={false} />
         </Text>
         <Text
-          font='/marble-race/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
+          font='/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
           scale={1.75}
           maxWidth={0.25}
           lineHeight={0.75}
@@ -543,7 +543,7 @@ function MultiplierSegment({ position, value, color, textColor, segmentLength, i
         />
       </mesh>
       <Text
-        font='/marble-race/fonts/MIDNIGHT-SANS-ST-24-HEAVY-TRIAL.woff'
+        font='/fonts/MIDNIGHT-SANS-ST-24-HEAVY-TRIAL.woff'
         scale={3.2}
         position={[0, 0.01, 0]}
         rotation-x={-Math.PI / 2}
