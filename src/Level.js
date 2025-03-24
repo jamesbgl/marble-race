@@ -1192,65 +1192,19 @@ function MovingObstacles() {
   
   const obstacleSpacing = multiplierSegments.length * SEGMENT_LENGTH / 5
 
-  // State for boost pad positions
-  const [boostPads, setBoostPads] = useState([])
-  const phase = useGame((state) => state.phase)
-
-  // Function to generate random boost pad positions
-  const generateBoostPads = useCallback(() => {
-    const newBoostPads = [
-      // Early game boosts (z: -24 to -56)
-      {
-        x: Math.random() * 4 - 2,  // Random x between -2 and 2
-        z: -24 - Math.random() * 8, // Random z near start
-        boost: 3 + Math.random()  // Boost between 3-4
-      },
-      {
-        x: Math.random() * 4 - 2,
-        z: -48 - Math.random() * 16,
-        boost: 3.5 + Math.random() * 1.5
-      },
-      // Mid game boosts (z: -88 to -120)
-      {
-        x: Math.random() * 4 - 2,
-        z: -88 - Math.random() * 8,
-        boost: 4 + Math.random() * 1.5
-      },
-      {
-        x: Math.random() * 4 - 2,
-        z: -112 - Math.random() * 16,
-        boost: 4.5 + Math.random() * 1.5
-      },
-      // Late game boosts (z: -152 to -184)
-      {
-        x: Math.random() * 4 - 2,
-        z: -152 - Math.random() * 8,
-        boost: 5 + Math.random() * 1.5
-      },
-      {
-        x: Math.random() * 4 - 2,
-        z: -176 - Math.random() * 16,
-        boost: 5.5 + Math.random() * 1.5
-      }
-    ]
-    setBoostPads(newBoostPads)
-  }, [])
-
-  // Regenerate boost pads when game phase changes to 'ready'
-  useEffect(() => {
-    if (phase === 'ready') {
-      generateBoostPads()
-    }
-  }, [phase, generateBoostPads])
-
-  // Generate initial boost pads
-  useEffect(() => {
-    generateBoostPads()
-  }, [generateBoostPads])
+  // Fixed boost pad positions
+  const boostPads = [
+    { x: 0, z: -24, boost: 3 },     // Early gentle boost before first hammer
+    { x: -2, z: -56, boost: 4 },    // Help navigate around first hammer
+    { x: 2, z: -88, boost: 4 },     // Recovery path before second hammer
+    { x: -2, z: -120, boost: 5 },   // Help with third hammer section
+    { x: 0, z: -152, boost: 5 },    // Strategic boost near high multiplier
+    { x: 2, z: -184, boost: 6 }     // Final boost for end game
+  ]
   
   return (
     <>
-      {/* Randomized boost pads */}
+      {/* Fixed boost pads */}
       {boostPads.map((pad, index) => (
         <BoostPad
           key={`boost-${index}-${pad.z}`}

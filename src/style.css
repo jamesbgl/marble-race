@@ -48,7 +48,7 @@ body,
 
 .power-bar-container {
   position: absolute;
-  bottom: 15%;
+  bottom: 18%;
   left: 50%;
   transform: translateX(-50%);
   width: 400px;
@@ -263,7 +263,7 @@ body,
 
 .stake-controls {
   position: absolute;
-  bottom: 8%;
+  bottom: 25%;
   left: 50%;
   transform: translateX(-50%);
   width: 400px;
