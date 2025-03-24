@@ -3,6 +3,7 @@ import { CuboidCollider, RigidBody } from '@react-three/rapier'
 import { Float, Text, useGLTF, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRef, useState, useMemo, useEffect } from 'react'
+import { EffectComposer, DepthOfField } from '@react-three/postprocessing'
 import useGame from './stores/useGame.js'
 
 THREE.ColorManagement.legacyMode = false
@@ -701,7 +702,6 @@ function MovingObstacles() {
     </>
   )
 }
-
 export function Level() {
   // Calculate total segments: 1 start segment + multiplier segments
   const totalSegments = 1 + multiplierSegments.length
@@ -709,9 +709,18 @@ export function Level() {
   return (
     <>
       <color attach="background" args={['#130413']} />
+
+
       <color attach="background" args={['#1a1a2e']} />
-      <fog attach="fog" args={['#1a1a2e', 10, 200]} />
+      {/* <fog attach="fog" args={['#1a1a2e', 10, 200]} /> */}
       <ambientLight intensity={0.75} />
+      {/* <EffectComposer>
+        <DepthOfField
+          focusDistance={0.01}
+          focalLength={0.2}
+          bokehScale={3}
+        />
+      </EffectComposer> */}
       <BlockStart position={[0, 0, 0]} />
       <TrackSegments />
       <MovingObstacles />
