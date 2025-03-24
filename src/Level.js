@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { CuboidCollider, RigidBody } from '@react-three/rapier'
 import { Float, Text, useGLTF, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useRef, useState, useMemo, useEffect } from 'react'
+import { useRef, useState, useMemo, useEffect, useCallback } from 'react'
 import useGame from './stores/useGame.js'
 
 THREE.ColorManagement.legacyMode = false
@@ -1043,116 +1043,126 @@ function SwingingHammer({ position, swingSpeed = 1.5, swingRange = Math.PI / 3 }
 function BoostPad({ position, boostStrength = 40 }) {
   return (
     <group position={position}>
-      {/* First chevron (bottom) */}
-      <mesh
-        geometry={boxGeometry}
-        material={new THREE.MeshPhongMaterial({
-          color: '#9D4EDD',
-          shininess: 100,
-          specular: new THREE.Color(0xB8A8FF),
-          emissive: '#7B2CBF',
-          emissiveIntensity: 0.4,
-          transparent: true,
-          opacity: 0.3,
-          depthWrite: true
-        })}
-        scale={[2, 0.1, 1]}
-        position={[0, -0.05, -0.5]}  // Moved below ground
-        rotation={[0, -Math.PI / 4, 0]}
-        castShadow
-      />
-      <mesh
-        geometry={boxGeometry}
-        material={new THREE.MeshPhongMaterial({
-          color: '#9D4EDD',
-          shininess: 100,
-          specular: new THREE.Color(0xB8A8FF),
-          emissive: '#7B2CBF',
-          emissiveIntensity: 0.4,
-          transparent: true,
-          opacity: 0.3,
-          depthWrite: true
-        })}
-        scale={[2, 0.1, 1]}
-        position={[0, -0.05, -0.5]}  // Moved below ground
-        rotation={[0, Math.PI / 4, 0]}
-        castShadow
-      />
+      {/* First chevron (back) */}
+      <group position={[0, 0.15, 0.8]}>
+        <mesh
+          geometry={boxGeometry}
+          material={new THREE.MeshPhongMaterial({
+            color: '#9D4EDD',
+            shininess: 100,
+            specular: new THREE.Color(0xB8A8FF),
+            emissive: '#7B2CBF',
+            emissiveIntensity: 0.8,
+            transparent: true,
+            opacity: 0.5,
+            depthWrite: true
+          })}
+          scale={[1.4, 0.08, 0.5]}
+          position={[-0.7, 0, 0]}
+          rotation={[0, Math.PI / 4, 0]}
+        />
+        <mesh
+          geometry={boxGeometry}
+          material={new THREE.MeshPhongMaterial({
+            color: '#9D4EDD',
+            shininess: 100,
+            specular: new THREE.Color(0xB8A8FF),
+            emissive: '#7B2CBF',
+            emissiveIntensity: 0.8,
+            transparent: true,
+            opacity: 0.5,
+            depthWrite: true
+          })}
+          scale={[1.4, 0.08, 0.5]}
+          position={[0.7, 0, 0]}
+          rotation={[0, -Math.PI / 4, 0]}
+        />
+      </group>
 
       {/* Second chevron (middle) */}
-      <mesh
-        geometry={boxGeometry}
-        material={new THREE.MeshPhongMaterial({
-          color: '#9D4EDD',
-          shininess: 100,
-          specular: new THREE.Color(0xB8A8FF),
-          emissive: '#7B2CBF',
-          emissiveIntensity: 0.5,
-          transparent: true,
-          opacity: 0.25,
-          depthWrite: false
-        })}
-        scale={[2, 0.1, 1]}
-        position={[0, -0.02, 0]}  // Moved below ground
-        rotation={[0, -Math.PI / 4, 0]}
-      />
-      <mesh
-        geometry={boxGeometry}
-        material={new THREE.MeshPhongMaterial({
-          color: '#9D4EDD',
-          shininess: 100,
-          specular: new THREE.Color(0xB8A8FF),
-          emissive: '#7B2CBF',
-          emissiveIntensity: 0.5,
-          transparent: true,
-          opacity: 0.25,
-          depthWrite: false
-        })}
-        scale={[2, 0.1, 1]}
-        position={[0, -0.02, 0]}  // Moved below ground
-        rotation={[0, Math.PI / 4, 0]}
-      />
+      <group position={[0, 0.15, 0]}>
+        <mesh
+          geometry={boxGeometry}
+          material={new THREE.MeshPhongMaterial({
+            color: '#9D4EDD',
+            shininess: 100,
+            specular: new THREE.Color(0xB8A8FF),
+            emissive: '#7B2CBF',
+            emissiveIntensity: 1.0,
+            transparent: true,
+            opacity: 0.45,
+            depthWrite: false
+          })}
+          scale={[1.8, 0.08, 0.5]}
+          position={[-0.9, 0, 0]}
+          rotation={[0, Math.PI / 4, 0]}
+        />
+        <mesh
+          geometry={boxGeometry}
+          material={new THREE.MeshPhongMaterial({
+            color: '#9D4EDD',
+            shininess: 100,
+            specular: new THREE.Color(0xB8A8FF),
+            emissive: '#7B2CBF',
+            emissiveIntensity: 1.0,
+            transparent: true,
+            opacity: 0.45,
+            depthWrite: false
+          })}
+          scale={[1.8, 0.08, 0.5]}
+          position={[0.9, 0, 0]}
+          rotation={[0, -Math.PI / 4, 0]}
+        />
+      </group>
 
-      {/* Third chevron (top) */}
-      <mesh
-        geometry={boxGeometry}
-        material={new THREE.MeshPhongMaterial({
-          color: '#9D4EDD',
-          shininess: 100,
-          specular: new THREE.Color(0xB8A8FF),
-          emissive: '#7B2CBF',
-          emissiveIntensity: 0.6,
-          transparent: true,
-          opacity: 0.2,
-          depthWrite: false
-        })}
-        scale={[2, 0.1, 1]}
-        position={[0, 0.01, 0.5]}  // Just barely above ground
-        rotation={[0, -Math.PI / 4, 0]}
-      />
-      <mesh
-        geometry={boxGeometry}
-        material={new THREE.MeshPhongMaterial({
-          color: '#9D4EDD',
-          shininess: 100,
-          specular: new THREE.Color(0xB8A8FF),
-          emissive: '#7B2CBF',
-          emissiveIntensity: 0.6,
-          transparent: true,
-          opacity: 0.2,
-          depthWrite: false
-        })}
-        scale={[2, 0.1, 1]}
-        position={[0, 0.01, 0.5]}  // Just barely above ground
-        rotation={[0, Math.PI / 4, 0]}
-      />
+      {/* Third chevron (front) */}
+      <group position={[0, 0.15, -0.8]}>
+        <mesh
+          geometry={boxGeometry}
+          material={new THREE.MeshPhongMaterial({
+            color: '#9D4EDD',
+            shininess: 100,
+            specular: new THREE.Color(0xB8A8FF),
+            emissive: '#7B2CBF',
+            emissiveIntensity: 1.2,
+            transparent: true,
+            opacity: 0.4,
+            depthWrite: false
+          })}
+          scale={[2.2, 0.08, 0.5]}
+          position={[-1.1, 0, 0]}
+          rotation={[0, Math.PI / 4, 0]}
+        />
+        <mesh
+          geometry={boxGeometry}
+          material={new THREE.MeshPhongMaterial({
+            color: '#9D4EDD',
+            shininess: 100,
+            specular: new THREE.Color(0xB8A8FF),
+            emissive: '#7B2CBF',
+            emissiveIntensity: 1.2,
+            transparent: true,
+            opacity: 0.4,
+            depthWrite: false
+          })}
+          scale={[2.2, 0.08, 0.5]}
+          position={[1.1, 0, 0]}
+          rotation={[0, -Math.PI / 4, 0]}
+        />
+      </group>
 
-      {/* Point light for subtle glow effect */}
+      {/* Point lights for enhanced glow effect */}
       <pointLight
         color="#9D4EDD"
-        intensity={0.5}
-        distance={3}
-        position={[0, 0.5, 0]}
+        intensity={0.8}
+        distance={4}
+        position={[0, 0.5, 0.8]}
+      />
+      <pointLight
+        color="#9D4EDD"
+        intensity={0.8}
+        distance={4}
+        position={[0, 0.5, -0.8]}
       />
 
       {/* Ground glow effect */}
@@ -1161,13 +1171,13 @@ function BoostPad({ position, boostStrength = 40 }) {
         material={new THREE.MeshPhongMaterial({
           color: '#9D4EDD',
           emissive: '#7B2CBF',
-          emissiveIntensity: 0.3,
+          emissiveIntensity: 0.6,
           transparent: true,
-          opacity: 0.15,
+          opacity: 0.2,
           depthWrite: false
         })}
-        scale={[2.5, 0.01, 2.5]}
-        position={[0, -0.01, 0]}  // Slightly below ground
+        scale={[3.5, 0.01, 2.5]}
+        position={[0, 0.05, 0]}
         receiveShadow
       />
     </group>
@@ -1181,16 +1191,73 @@ function MovingObstacles() {
   }, [])
   
   const obstacleSpacing = multiplierSegments.length * SEGMENT_LENGTH / 5
+
+  // State for boost pad positions
+  const [boostPads, setBoostPads] = useState([])
+  const phase = useGame((state) => state.phase)
+
+  // Function to generate random boost pad positions
+  const generateBoostPads = useCallback(() => {
+    const newBoostPads = [
+      // Early game boosts (z: -24 to -56)
+      {
+        x: Math.random() * 4 - 2,  // Random x between -2 and 2
+        z: -24 - Math.random() * 8, // Random z near start
+        boost: 3 + Math.random()  // Boost between 3-4
+      },
+      {
+        x: Math.random() * 4 - 2,
+        z: -48 - Math.random() * 16,
+        boost: 3.5 + Math.random() * 1.5
+      },
+      // Mid game boosts (z: -88 to -120)
+      {
+        x: Math.random() * 4 - 2,
+        z: -88 - Math.random() * 8,
+        boost: 4 + Math.random() * 1.5
+      },
+      {
+        x: Math.random() * 4 - 2,
+        z: -112 - Math.random() * 16,
+        boost: 4.5 + Math.random() * 1.5
+      },
+      // Late game boosts (z: -152 to -184)
+      {
+        x: Math.random() * 4 - 2,
+        z: -152 - Math.random() * 8,
+        boost: 5 + Math.random() * 1.5
+      },
+      {
+        x: Math.random() * 4 - 2,
+        z: -176 - Math.random() * 16,
+        boost: 5.5 + Math.random() * 1.5
+      }
+    ]
+    setBoostPads(newBoostPads)
+  }, [])
+
+  // Regenerate boost pads when game phase changes to 'ready'
+  useEffect(() => {
+    if (phase === 'ready') {
+      generateBoostPads()
+    }
+  }, [phase, generateBoostPads])
+
+  // Generate initial boost pads
+  useEffect(() => {
+    generateBoostPads()
+  }, [generateBoostPads])
   
   return (
     <>
-      {/* Strategic boost pads */}
-      <BoostPad position={[0, 0, -24]} boostStrength={3} />   {/* Early gentle boost */}
-      <BoostPad position={[-2, 0, -56]} boostStrength={4} />  {/* First hammer help */}
-      <BoostPad position={[2, 0, -88]} boostStrength={4} />   {/* Recovery path */}
-      <BoostPad position={[-2, 0, -120]} boostStrength={5} /> {/* Third hammer help */}
-      <BoostPad position={[0, 0, -152]} boostStrength={5} />  {/* High multiplier boost */}
-      <BoostPad position={[2, 0, -184]} boostStrength={6} />  {/* Final boost */}
+      {/* Randomized boost pads */}
+      {boostPads.map((pad, index) => (
+        <BoostPad
+          key={`boost-${index}-${pad.z}`}
+          position={[pad.x, 0, pad.z]}
+          boostStrength={pad.boost}
+        />
+      ))}
 
       {/* Existing horizontal moving walls */}
       <MovingWall 

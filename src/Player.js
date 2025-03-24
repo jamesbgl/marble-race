@@ -22,8 +22,8 @@ export default function Player() {
   const wasKeyPressed = useRef(false)
   const [showBall, setShowBall] = useState(true)
 
-  const cameraPosition = useRef(new THREE.Vector3(0, 2.25, 3))
-  const cameraTarget = useRef(new THREE.Vector3(0, 0.25, 0))
+  const cameraPosition = useRef(new THREE.Vector3(0, 3, 4))
+  const cameraTarget = useRef(new THREE.Vector3(0, 0.25, -4))
 
   const start = useGame((state) => state.start)
   const end = useGame((state) => state.end)
@@ -49,8 +49,8 @@ export default function Player() {
     wasKeyPressed.current = false
     
     // Reset camera to launch position
-    cameraPosition.current.set(0, 2.25, 3)
-    cameraTarget.current.set(0, 0.25, 0)
+    cameraPosition.current.set(0, 3, 4)
+    cameraTarget.current.set(0, 0.25, -4)
     
     if (stopTimeout) {
       clearTimeout(stopTimeout)
@@ -220,14 +220,14 @@ export default function Player() {
      */
     const targetPosition = new THREE.Vector3(
       bodyPosition.x,
-      hasLaunched ? bodyPosition.y + 3.5 : bodyPosition.y + 1.25,  // Higher camera when launched
-      bodyPosition.z + (hasLaunched ? 5 : 3)  // Further back when launched
+      hasLaunched ? bodyPosition.y + 4.5 : bodyPosition.y + 2,  // Higher camera when launched
+      bodyPosition.z + (hasLaunched ? 6 : 4)  // Further back when launched
     )
     
     const targetLookAt = new THREE.Vector3(
       bodyPosition.x,
-      hasLaunched ? bodyPosition.y : bodyPosition.y + 0.25,  // Look at ball level when launched
-      bodyPosition.z - (hasLaunched ? 12 : 0)  // Look further ahead when launched
+      hasLaunched ? bodyPosition.y - 0.5 : bodyPosition.y,  // Look slightly downward
+      bodyPosition.z - (hasLaunched ? 20 : 8)  // Look much further ahead
     )
 
     // Smooth camera movement with adjusted lerp speed

@@ -6,8 +6,8 @@ export default function TrajectoryLine({ aimDirection, visible }) {
   const line = useRef()
   const points = useMemo(() => {
     const linePoints = []
-    const segments = 50 // Number of segments in the line
-    const segmentLength = 1.2 // Increased length of each segment to match higher speeds
+    const segments = 60 // Increased number of segments for longer line
+    const segmentLength = 1.5 // Increased length of each segment
     const launchSpeed = 30 // Should match the minimum launch speed in Player.js
     const launchAngle = aimDirection * Math.PI / 6
     
@@ -20,7 +20,7 @@ export default function TrajectoryLine({ aimDirection, visible }) {
       const t = i * segmentLength // Time parameter
       const x = velocityX * t
       const z = velocityZ * t
-      linePoints.push(new THREE.Vector3(x, 0.3, z))
+      linePoints.push(new THREE.Vector3(x, 0.5, z)) // Raised height from 0.3 to 0.5
     }
     
     return linePoints
@@ -40,7 +40,7 @@ export default function TrajectoryLine({ aimDirection, visible }) {
         <bufferGeometry />
         <lineBasicMaterial 
           color="#FF0000" 
-          opacity={0.8} 
+          opacity={0.9}  // Increased opacity
           transparent={true} 
           linewidth={4}
         />
@@ -50,7 +50,7 @@ export default function TrajectoryLine({ aimDirection, visible }) {
         <bufferGeometry points={points} />
         <lineBasicMaterial 
           color="#FF3333" 
-          opacity={0.4} 
+          opacity={0.6}  // Increased opacity
           transparent={true} 
           linewidth={8}
         />
