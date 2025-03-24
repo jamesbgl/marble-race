@@ -17,12 +17,13 @@ export default function Lights() {
 
   return (
     <>
-      {/* Main directional light */}
+      {/* Main directional light - simulating distant star/sun */}
       <directionalLight
         ref={mainLight}
         castShadow
-        position={[4, 4, 1]}
-        intensity={0.8}
+        position={[4, 6, 1]}
+        intensity={1.5}
+        color="#FFFFFF"
         shadow-mapSize={[2048, 2048]}
         shadow-camera-near={1}
         shadow-camera-far={50}
@@ -33,21 +34,29 @@ export default function Lights() {
         shadow-bias={-0.0001}
       />
 
-      {/* Fill light for better depth */}
+      {/* Fill light - cosmic background radiation */}
       <directionalLight
         ref={fillLight}
         position={[-2, 3, -2]}
-        intensity={0.15}
+        intensity={0.4}
+        color="#4B0082"  // Indigo for space tint
       />
 
-      {/* Ambient light for base illumination */}
-      <ambientLight intensity={0.2} />
+      {/* Ambient light - star field glow */}
+      <ambientLight intensity={0.3} color="#000B4D" />
 
-      {/* Hemisphere light for sky/ground ambient */}
-      <hemisphereLight
-        color="#ffffff"
-        groundColor="#000000"
-        intensity={0.15}
+      {/* Point lights for track highlights */}
+      <pointLight
+        position={[10, 5, 0]}
+        intensity={0.5}
+        color="#FFFFFF"
+        distance={20}
+      />
+      <pointLight
+        position={[-10, 5, 0]}
+        intensity={0.5}
+        color="#FFFFFF"
+        distance={20}
       />
     </>
   )
