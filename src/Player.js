@@ -22,7 +22,7 @@ export default function Player() {
   const wasKeyPressed = useRef(false)
   const [showBall, setShowBall] = useState(true)
 
-  const cameraPosition = useRef(new THREE.Vector3(0, 1.65, 2.25))
+  const cameraPosition = useRef(new THREE.Vector3(0, 2.25, 3))
   const cameraTarget = useRef(new THREE.Vector3(0, 0.25, 0))
 
   const start = useGame((state) => state.start)
@@ -49,7 +49,7 @@ export default function Player() {
     wasKeyPressed.current = false
     
     // Reset camera to launch position
-    cameraPosition.current.set(0, 1.65, 2.25)
+    cameraPosition.current.set(0, 2.25, 3)
     cameraTarget.current.set(0, 0.25, 0)
     
     if (stopTimeout) {
@@ -149,6 +149,67 @@ export default function Player() {
           }
         }
       }
+
+      // Check for boost pad collision
+      const boostPads = [
+        { x: 0, z: -24, boost: 3 },     // Early gentle boost before first hammer
+        { x: -2, z: -56, boost: 4 },    // Help navigate around first hammer
+        { x: 2, z: -88, boost: 4 },     // Recovery path before second hammer
+        { x: -2, z: -120, boost: 5 },   // Help with third hammer section
+        { x: 0, z: -152, boost: 5 },    // Strategic boost near high multiplier
+        { x: 2, z: -184, boost: 6 }     // Final boost for end game
+      ]
+
+      for (const pad of boostPads) {
+        const distance = Math.sqrt(
+          Math.pow(bodyPosition.x - pad.x, 2) + 
+          Math.pow(bodyPosition.z - pad.z, 2)
+        )
+        
+        if (distance < 1.2) { // Increased detection radius from 1 to 1.2
+          // Apply boost force in the negative z direction
+          const boostForce = pad.boost
+          body.current.setLinvel({
+            x: currentVelocity.x,
+            y: currentVelocity.y,
+            z: currentVelocity.z - boostForce
+          })
+          soundEffects.playFireSound(boostForce / 100) // Play boost sound
+        }
+      }
+
+      // Check for speed boost collision
+      const boostZones = [
+        { x: -2, z: -144, boost: 25 }, // Speed boost at z = -144
+      ]
+
+      boostZones.forEach(zone => {
+        const distance = Math.sqrt(
+          Math.pow(bodyPosition.x - zone.x, 2) + 
+          Math.pow(bodyPosition.z - zone.z, 2)
+        )
+        
+        if (distance < 0.5) { // If marble is close enough to boost zone
+          const currentSpeed = Math.sqrt(
+            currentVelocity.x * currentVelocity.x + 
+            currentVelocity.z * currentVelocity.z
+          )
+          
+          // Apply boost in the direction of current velocity
+          const boostDirection = new THREE.Vector3(
+            currentVelocity.x / currentSpeed,
+            0,
+            currentVelocity.z / currentSpeed
+          )
+          
+          const boostForce = boostDirection.multiplyScalar(zone.boost)
+          body.current.setLinvel({
+            x: currentVelocity.x + boostForce.x,
+            y: currentVelocity.y,
+            z: currentVelocity.z + boostForce.z
+          })
+        }
+      })
     }
     
     // Update last velocity for next frame
@@ -159,14 +220,14 @@ export default function Player() {
      */
     const targetPosition = new THREE.Vector3(
       bodyPosition.x,
-      hasLaunched ? bodyPosition.y + 2.5 : bodyPosition.y + 0.65,  // Higher camera when launched
-      bodyPosition.z + (hasLaunched ? 4 : 2.25)  // Further back when launched
+      hasLaunched ? bodyPosition.y + 3.5 : bodyPosition.y + 1.25,  // Higher camera when launched
+      bodyPosition.z + (hasLaunched ? 5 : 3)  // Further back when launched
     )
     
     const targetLookAt = new THREE.Vector3(
       bodyPosition.x,
       hasLaunched ? bodyPosition.y : bodyPosition.y + 0.25,  // Look at ball level when launched
-      bodyPosition.z - (hasLaunched ? 8 : 0)  // Look further ahead when launched
+      bodyPosition.z - (hasLaunched ? 12 : 0)  // Look further ahead when launched
     )
 
     // Smooth camera movement with adjusted lerp speed

@@ -647,7 +647,7 @@ function Bounds({ length = 1 }) {
                 roughness: 0.4,
                 envMapIntensity: 0.5
               })}
-              scale={[0.3, 0.3, SEGMENT_LENGTH]}
+              scale={[0.3, 1.5, SEGMENT_LENGTH]}
               castShadow
             />
             {/* Rounded corners at start of segment */}
@@ -712,7 +712,7 @@ function Bounds({ length = 1 }) {
                 roughness: 0.4,
                 envMapIntensity: 0.5
               })}
-              scale={[0.3, 0.3, SEGMENT_LENGTH]}
+              scale={[0.3, 1.5, SEGMENT_LENGTH]}
               castShadow
             />
             {/* Rounded corners at start of segment */}
@@ -887,6 +887,293 @@ function SpinningWall({ position, speed }) {
   )
 }
 
+function BouncingPlatform({ position, bounceStrength = 15 }) {
+  const platform = useRef()
+  const timeOffset = useRef(Math.random() * Math.PI * 2)
+
+  useFrame((state) => {
+    if (platform.current) {
+      const time = state.clock.getElapsedTime()
+      const offset = Math.sin(time * 2 + timeOffset.current) * 0.3
+      
+      platform.current.setNextKinematicTranslation({
+        x: position[0],
+        y: position[1] + offset,
+        z: position[2]
+      })
+    }
+  })
+
+  return (
+    <RigidBody ref={platform} type="kinematicPosition" restitution={0.8} friction={0.2} position={position}>
+      <mesh
+        geometry={boxGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#00FF00',
+          shininess: 60,
+          specular: new THREE.Color(0x444444)
+        })}
+        scale={[2, 0.3, 2]}
+        castShadow
+      />
+    </RigidBody>
+  )
+}
+
+function RotatingCylinder({ position, speed = 2 }) {
+  const cylinder = useRef()
+  const timeOffset = useRef(Math.random() * Math.PI * 2)
+
+  useFrame((state) => {
+    if (cylinder.current) {
+      const time = state.clock.getElapsedTime()
+      const rotation = new THREE.Quaternion()
+      rotation.setFromEuler(new THREE.Euler(0, (time * speed + timeOffset.current), 0))
+      cylinder.current.setNextKinematicRotation(rotation)
+    }
+  })
+
+  return (
+    <RigidBody ref={cylinder} type="kinematicPosition" restitution={0.6} friction={0.1} position={position}>
+      <mesh
+        geometry={cylinderGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#FF00FF',
+          shininess: 60,
+          specular: new THREE.Color(0x444444)
+        })}
+        scale={[1, 2, 1]}
+        castShadow
+      />
+    </RigidBody>
+  )
+}
+
+function SpeedBoost({ position, boostStrength = 20 }) {
+  const boost = useRef()
+  const timeOffset = useRef(Math.random() * Math.PI * 2)
+
+  useFrame((state) => {
+    if (boost.current) {
+      const time = state.clock.getElapsedTime()
+      const rotation = new THREE.Quaternion()
+      rotation.setFromEuler(new THREE.Euler(0, (time * 3 + timeOffset.current), 0))
+      boost.current.setNextKinematicRotation(rotation)
+    }
+  })
+
+  return (
+    <RigidBody ref={boost} type="kinematicPosition" restitution={0.2} friction={0.1} position={position}>
+      <mesh
+        geometry={cylinderGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#FFFF00',
+          shininess: 60,
+          specular: new THREE.Color(0x444444)
+        })}
+        scale={[0.5, 0.3, 0.5]}
+        castShadow
+      />
+    </RigidBody>
+  )
+}
+
+function SwingingHammer({ position, swingSpeed = 1.5, swingRange = Math.PI / 3 }) {
+  const hammer = useRef()
+  const timeOffset = useRef(Math.random() * Math.PI * 2)
+
+  useFrame((state) => {
+    if (hammer.current) {
+      const time = state.clock.getElapsedTime()
+      const angle = Math.sin(time * swingSpeed + timeOffset.current) * swingRange
+      
+      // Create rotation quaternion for the swinging motion
+      const rotation = new THREE.Quaternion()
+      rotation.setFromEuler(new THREE.Euler(0, 0, angle))
+      hammer.current.setNextKinematicRotation(rotation)
+    }
+  })
+
+  return (
+    <RigidBody ref={hammer} type="kinematicPosition" restitution={0.8} friction={0.1} position={position}>
+      <group>
+        {/* Hammer head - made much bigger */}
+        <mesh
+          geometry={boxGeometry}
+          material={new THREE.MeshPhongMaterial({
+            color: '#FF0000',
+            shininess: 60,
+            specular: new THREE.Color(0x444444),
+            emissive: '#330000',
+            emissiveIntensity: 0.5
+          })}
+          scale={[2, 2, 2]} // Much larger hammer head
+          position={[0, -8, 0]} // Moved further down for longer reach
+          castShadow
+        />
+        {/* Hammer shaft - made longer and thicker */}
+        <mesh
+          geometry={boxGeometry}
+          material={new THREE.MeshPhongMaterial({
+            color: '#8B4513',
+            shininess: 60,
+            specular: new THREE.Color(0x444444)
+          })}
+          scale={[0.4, 8, 0.4]} // Much longer and thicker shaft
+          position={[0, -4, 0]} // Adjusted for new size
+          castShadow
+        />
+        {/* Pivot point - made bigger */}
+        <mesh
+          geometry={cylinderGeometry}
+          material={new THREE.MeshPhongMaterial({
+            color: '#808080',
+            shininess: 60,
+            specular: new THREE.Color(0x444444)
+          })}
+          scale={[0.6, 0.6, 0.6]} // Bigger pivot point
+          position={[0, 0, 0]}
+          castShadow
+        />
+      </group>
+    </RigidBody>
+  )
+}
+
+function BoostPad({ position, boostStrength = 40 }) {
+  return (
+    <group position={position}>
+      {/* First chevron (bottom) */}
+      <mesh
+        geometry={boxGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#9D4EDD',
+          shininess: 100,
+          specular: new THREE.Color(0xB8A8FF),
+          emissive: '#7B2CBF',
+          emissiveIntensity: 0.4,
+          transparent: true,
+          opacity: 0.3,
+          depthWrite: true
+        })}
+        scale={[2, 0.1, 1]}
+        position={[0, -0.05, -0.5]}  // Moved below ground
+        rotation={[0, -Math.PI / 4, 0]}
+        castShadow
+      />
+      <mesh
+        geometry={boxGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#9D4EDD',
+          shininess: 100,
+          specular: new THREE.Color(0xB8A8FF),
+          emissive: '#7B2CBF',
+          emissiveIntensity: 0.4,
+          transparent: true,
+          opacity: 0.3,
+          depthWrite: true
+        })}
+        scale={[2, 0.1, 1]}
+        position={[0, -0.05, -0.5]}  // Moved below ground
+        rotation={[0, Math.PI / 4, 0]}
+        castShadow
+      />
+
+      {/* Second chevron (middle) */}
+      <mesh
+        geometry={boxGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#9D4EDD',
+          shininess: 100,
+          specular: new THREE.Color(0xB8A8FF),
+          emissive: '#7B2CBF',
+          emissiveIntensity: 0.5,
+          transparent: true,
+          opacity: 0.25,
+          depthWrite: false
+        })}
+        scale={[2, 0.1, 1]}
+        position={[0, -0.02, 0]}  // Moved below ground
+        rotation={[0, -Math.PI / 4, 0]}
+      />
+      <mesh
+        geometry={boxGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#9D4EDD',
+          shininess: 100,
+          specular: new THREE.Color(0xB8A8FF),
+          emissive: '#7B2CBF',
+          emissiveIntensity: 0.5,
+          transparent: true,
+          opacity: 0.25,
+          depthWrite: false
+        })}
+        scale={[2, 0.1, 1]}
+        position={[0, -0.02, 0]}  // Moved below ground
+        rotation={[0, Math.PI / 4, 0]}
+      />
+
+      {/* Third chevron (top) */}
+      <mesh
+        geometry={boxGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#9D4EDD',
+          shininess: 100,
+          specular: new THREE.Color(0xB8A8FF),
+          emissive: '#7B2CBF',
+          emissiveIntensity: 0.6,
+          transparent: true,
+          opacity: 0.2,
+          depthWrite: false
+        })}
+        scale={[2, 0.1, 1]}
+        position={[0, 0.01, 0.5]}  // Just barely above ground
+        rotation={[0, -Math.PI / 4, 0]}
+      />
+      <mesh
+        geometry={boxGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#9D4EDD',
+          shininess: 100,
+          specular: new THREE.Color(0xB8A8FF),
+          emissive: '#7B2CBF',
+          emissiveIntensity: 0.6,
+          transparent: true,
+          opacity: 0.2,
+          depthWrite: false
+        })}
+        scale={[2, 0.1, 1]}
+        position={[0, 0.01, 0.5]}  // Just barely above ground
+        rotation={[0, Math.PI / 4, 0]}
+      />
+
+      {/* Point light for subtle glow effect */}
+      <pointLight
+        color="#9D4EDD"
+        intensity={0.5}
+        distance={3}
+        position={[0, 0.5, 0]}
+      />
+
+      {/* Ground glow effect */}
+      <mesh
+        geometry={boxGeometry}
+        material={new THREE.MeshPhongMaterial({
+          color: '#9D4EDD',
+          emissive: '#7B2CBF',
+          emissiveIntensity: 0.3,
+          transparent: true,
+          opacity: 0.15,
+          depthWrite: false
+        })}
+        scale={[2.5, 0.01, 2.5]}
+        position={[0, -0.01, 0]}  // Slightly below ground
+        receiveShadow
+      />
+    </group>
+  )
+}
+
 function MovingObstacles() {
   // Generate random x positions for spinning walls between -3 and 3
   const spinningWallsX = useMemo(() => {
@@ -897,6 +1184,14 @@ function MovingObstacles() {
   
   return (
     <>
+      {/* Strategic boost pads */}
+      <BoostPad position={[0, 0, -24]} boostStrength={3} />   {/* Early gentle boost */}
+      <BoostPad position={[-2, 0, -56]} boostStrength={4} />  {/* First hammer help */}
+      <BoostPad position={[2, 0, -88]} boostStrength={4} />   {/* Recovery path */}
+      <BoostPad position={[-2, 0, -120]} boostStrength={5} /> {/* Third hammer help */}
+      <BoostPad position={[0, 0, -152]} boostStrength={5} />  {/* High multiplier boost */}
+      <BoostPad position={[2, 0, -184]} boostStrength={6} />  {/* Final boost */}
+
       {/* Existing horizontal moving walls */}
       <MovingWall 
         position={[0, 0.5, -32]} 
@@ -951,6 +1246,35 @@ function MovingObstacles() {
       <SpinningWall 
         position={[spinningWallsX[3], 0.5, -(32 + obstacleSpacing * 4)]} 
         speed={-2.2}
+      />
+
+      {/* New obstacles */}
+      <BouncingPlatform position={[0, 0.5, -80]} />
+      <RotatingCylinder position={[2, 0.5, -112]} speed={3} />
+      <SpeedBoost position={[-2, 0.5, -144]} boostStrength={25} />
+      <BouncingPlatform position={[0, 0.5, -176]} />
+      <RotatingCylinder position={[-2, 0.5, -192]} speed={-2.5} />
+
+      {/* Giant swinging hammers at strategic positions */}
+      <SwingingHammer 
+        position={[0, 8, -64]} 
+        swingSpeed={1.0} 
+        swingRange={Math.PI / 2.5}
+      />
+      <SwingingHammer 
+        position={[0, 8, -96]} 
+        swingSpeed={1.5} 
+        swingRange={Math.PI / 2}
+      />
+      <SwingingHammer 
+        position={[0, 8, -128]} 
+        swingSpeed={1.2} 
+        swingRange={Math.PI / 2}
+      />
+      <SwingingHammer 
+        position={[0, 8, -176]} 
+        swingSpeed={0.8} 
+        swingRange={Math.PI / 2.2}
       />
     </>
   )
