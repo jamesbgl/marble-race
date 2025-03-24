@@ -128,19 +128,19 @@ export default function Player() {
      */
     const targetPosition = new THREE.Vector3(
       bodyPosition.x,
-      bodyPosition.y + 0.65,
-      bodyPosition.z + 2.25
+      hasLaunched ? bodyPosition.y + 2.5 : bodyPosition.y + 0.65,  // Higher camera when launched
+      bodyPosition.z + (hasLaunched ? 4 : 2.25)  // Further back when launched
     )
     
     const targetLookAt = new THREE.Vector3(
       bodyPosition.x,
-      bodyPosition.y + 0.25,
-      bodyPosition.z
+      hasLaunched ? bodyPosition.y : bodyPosition.y + 0.25,  // Look at ball level when launched
+      bodyPosition.z - (hasLaunched ? 8 : 0)  // Look further ahead when launched
     )
 
-    // Smooth camera movement
-    cameraPosition.current.lerp(targetPosition, delta * 4)
-    cameraTarget.current.lerp(targetLookAt, delta * 4)
+    // Smooth camera movement with adjusted lerp speed
+    cameraPosition.current.lerp(targetPosition, delta * (hasLaunched ? 2 : 4))
+    cameraTarget.current.lerp(targetLookAt, delta * (hasLaunched ? 2 : 4))
 
     state.camera.position.copy(cameraPosition.current)
     state.camera.lookAt(cameraTarget.current)
