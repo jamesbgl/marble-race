@@ -30,7 +30,7 @@ export default function Effects() {
         resolutionScale={1}
         velocityResolutionScale={1}
       /> */}
-      <DepthOfField focusDistance={0.01} focusLength={0.2} bokehScale={2} />
+      {/* <DepthOfField focusDistance={0.01} focusLength={0.2} bokehScale={2} />
       <ChromaticAberration
         offset={[0.0005, 0.0005]} // Reduced to 5% aberration
         blendFunction={BlendFunction.NORMAL}
@@ -43,7 +43,7 @@ export default function Effects() {
       <Noise
         opacity={0.06} // 6% noise
         blendFunction={BlendFunction.SOFT_LIGHT}
-      />
+      /> */}
     </EffectComposer>
   )
 }
