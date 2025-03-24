@@ -3,13 +3,19 @@ import { CuboidCollider, RigidBody } from '@react-three/rapier'
 import { Float, Text, useGLTF, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRef, useState, useMemo, useEffect } from 'react'
-import { EffectComposer, DepthOfField } from '@react-three/postprocessing'
+import { EffectComposer, DepthOfField, Noise, Vignette } from '@react-three/postprocessing'
 import useGame from './stores/useGame.js'
 
 THREE.ColorManagement.legacyMode = false
 
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1)
 const cylinderGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.3, 32)
+// Create rounded cylinder for columns - split into base and top
+const columnBaseGeometry = new THREE.CylinderGeometry(0.15, 0.15, 3.5, 8)
+const columnTopGeometry = new THREE.CylinderGeometry(0.2, 0.15, 0.5, 8)
+// Create rounded edges for walls
+const roundedWallGeometry = new THREE.CylinderGeometry(0.15, 0.15, 1, 8)
+
 const plainMaterial = new THREE.MeshStandardMaterial({
   color: '#FFFFFF',
   metalness: 0,
@@ -260,6 +266,142 @@ function BlockStart({ position = [0, 0, 0] }) {
   
   return (
     <group position={position}>
+      {/* Left wall */}
+      <group>
+        {/* Main wall segment */}
+        <mesh
+          position={[4.15, 0.15, 0]}
+          geometry={boxGeometry}
+          material={new THREE.MeshStandardMaterial({
+            color: multiplierSegments[0].color,
+            metalness: 0.3,
+            roughness: 0.4,
+            envMapIntensity: 0.5
+          })}
+          scale={[0.3, 0.3, 16]}
+          castShadow
+        />
+        {/* Columns along the start section */}
+        {[0, -4, -8, -12].map((zOffset, index) => (
+          <group key={`left-column-${index}`}>
+            {/* Column base */}
+            <mesh
+              position={[4.15, 1.75, zOffset]}
+              geometry={columnBaseGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: multiplierSegments[0].color,
+                metalness: 0.3,
+                roughness: 0.4,
+                envMapIntensity: 0.5
+              })}
+              castShadow
+            />
+            {/* Column glowing top */}
+            <mesh
+              position={[4.15, 3.75, zOffset]}
+              geometry={columnTopGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: multiplierSegments[0].color,
+                emissive: multiplierSegments[0].color,
+                emissiveIntensity: 0.5,
+                metalness: 0.1,
+                roughness: 0.2,
+                envMapIntensity: 1
+              })}
+              castShadow
+            />
+            {/* Point light at column top */}
+            <pointLight
+              position={[4.15, 4, zOffset]}
+              intensity={0.5}
+              distance={4}
+              color={multiplierSegments[0].color}
+            />
+          </group>
+        ))}
+        {/* Rounded corner at end */}
+        <mesh
+          position={[4.15, 0.15, -8]}
+          geometry={roundedWallGeometry}
+          material={new THREE.MeshStandardMaterial({
+            color: multiplierSegments[0].color,
+            metalness: 0.3,
+            roughness: 0.4,
+            envMapIntensity: 0.5
+          })}
+          scale={[1, 0.3, 1]}
+          castShadow
+        />
+      </group>
+
+      {/* Right wall */}
+      <group>
+        {/* Main wall segment */}
+        <mesh
+          position={[-4.15, 0.15, 0]}
+          geometry={boxGeometry}
+          material={new THREE.MeshStandardMaterial({
+            color: multiplierSegments[0].color,
+            metalness: 0.3,
+            roughness: 0.4,
+            envMapIntensity: 0.5
+          })}
+          scale={[0.3, 0.3, 16]}
+          castShadow
+        />
+        {/* Columns along the start section */}
+        {[0, -4, -8, -12].map((zOffset, index) => (
+          <group key={`right-column-${index}`}>
+            {/* Column base */}
+            <mesh
+              position={[-4.15, 1.75, zOffset]}
+              geometry={columnBaseGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: multiplierSegments[0].color,
+                metalness: 0.3,
+                roughness: 0.4,
+                envMapIntensity: 0.5
+              })}
+              castShadow
+            />
+            {/* Column glowing top */}
+            <mesh
+              position={[-4.15, 3.75, zOffset]}
+              geometry={columnTopGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: multiplierSegments[0].color,
+                emissive: multiplierSegments[0].color,
+                emissiveIntensity: 0.5,
+                metalness: 0.1,
+                roughness: 0.2,
+                envMapIntensity: 1
+              })}
+              castShadow
+            />
+            {/* Point light at column top */}
+            <pointLight
+              position={[-4.15, 4, zOffset]}
+              intensity={0.5}
+              distance={4}
+              color={multiplierSegments[0].color}
+            />
+          </group>
+        ))}
+        {/* Rounded corner at end */}
+        <mesh
+          position={[-4.15, 0.15, -8]}
+          geometry={roundedWallGeometry}
+          material={new THREE.MeshStandardMaterial({
+            color: multiplierSegments[0].color,
+            metalness: 0.3,
+            roughness: 0.4,
+            envMapIntensity: 0.5
+          })}
+          scale={[1, 0.3, 1]}
+          castShadow
+        />
+      </group>
+
       <Float floatIntensity={0.25} rotationIntensity={0.25}>
         <Text
           font='/marble-race/fonts/MIDNIGHT-SANS-ST-48-HEAVY-TRIAL.woff'
@@ -438,65 +580,187 @@ function TrackSegments() {
 
 function Bounds({ length = 1 }) {
   const totalLength = multiplierSegments.length * SEGMENT_LENGTH
-  const spacing = totalLength / 5
   
   return (
     <>
-      <RigidBody type='fixed' restitution={0.2} friction={0}>
-        {/* Left wall segments */}
+      <RigidBody type='fixed' restitution={0.6} friction={0.1}>
+        {/* Left wall segments with rounded corners */}
         {multiplierSegments.map((segment, index) => (
-          <mesh
-            key={`left-${index}`}
-            position={[4.15, 0.15, -(index * SEGMENT_LENGTH + 16)]}
-            geometry={boxGeometry}
-            material={new THREE.MeshStandardMaterial({
-              color: segment.color,
-              metalness: 0.3,
-              roughness: 0.4,
-              envMapIntensity: 0.5
-            })}
-            scale={[0.3, 0.3, SEGMENT_LENGTH]}
-            castShadow
-          />
+          <group key={`left-${index}`}>
+            {/* Main wall segment */}
+            <mesh
+              position={[4.15, 0.15, -(index * SEGMENT_LENGTH + 16)]}
+              geometry={boxGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: segment.color,
+                metalness: 0.3,
+                roughness: 0.4,
+                envMapIntensity: 0.5
+              })}
+              scale={[0.3, 0.3, SEGMENT_LENGTH]}
+              castShadow
+            />
+            {/* Rounded corners at start of segment */}
+            <mesh
+              position={[4.15, 0.15, -(index * SEGMENT_LENGTH + 16 - SEGMENT_LENGTH/2)]}
+              geometry={roundedWallGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: segment.color,
+                metalness: 0.3,
+                roughness: 0.4,
+                envMapIntensity: 0.5
+              })}
+              scale={[1, 0.3, 1]}
+              castShadow
+            />
+            {/* Column base */}
+            <mesh
+              position={[4.15, 1.75, -(index * SEGMENT_LENGTH + 16)]}
+              geometry={columnBaseGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: segment.color,
+                metalness: 0.3,
+                roughness: 0.4,
+                envMapIntensity: 0.5
+              })}
+              castShadow
+            />
+            {/* Column glowing top */}
+            <mesh
+              position={[4.15, 3.75, -(index * SEGMENT_LENGTH + 16)]}
+              geometry={columnTopGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: segment.color,
+                emissive: segment.color,
+                emissiveIntensity: 0.5,
+                metalness: 0.1,
+                roughness: 0.2,
+                envMapIntensity: 1
+              })}
+              castShadow
+            />
+            {/* Point light at column top */}
+            <pointLight
+              position={[4.15, 4, -(index * SEGMENT_LENGTH + 16)]}
+              intensity={0.5}
+              distance={4}
+              color={segment.color}
+            />
+          </group>
         ))}
 
-        {/* Right wall segments */}
+        {/* Right wall segments with rounded corners */}
         {multiplierSegments.map((segment, index) => (
+          <group key={`right-${index}`}>
+            {/* Main wall segment */}
+            <mesh
+              position={[-4.15, 0.15, -(index * SEGMENT_LENGTH + 16)]}
+              geometry={boxGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: segment.color,
+                metalness: 0.3,
+                roughness: 0.4,
+                envMapIntensity: 0.5
+              })}
+              scale={[0.3, 0.3, SEGMENT_LENGTH]}
+              castShadow
+            />
+            {/* Rounded corners at start of segment */}
+            <mesh
+              position={[-4.15, 0.15, -(index * SEGMENT_LENGTH + 16 - SEGMENT_LENGTH/2)]}
+              geometry={roundedWallGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: segment.color,
+                metalness: 0.3,
+                roughness: 0.4,
+                envMapIntensity: 0.5
+              })}
+              scale={[1, 0.3, 1]}
+              castShadow
+            />
+            {/* Column base */}
+            <mesh
+              position={[-4.15, 1.75, -(index * SEGMENT_LENGTH + 16)]}
+              geometry={columnBaseGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: segment.color,
+                metalness: 0.3,
+                roughness: 0.4,
+                envMapIntensity: 0.5
+              })}
+              castShadow
+            />
+            {/* Column glowing top */}
+            <mesh
+              position={[-4.15, 3.75, -(index * SEGMENT_LENGTH + 16)]}
+              geometry={columnTopGeometry}
+              material={new THREE.MeshStandardMaterial({
+                color: segment.color,
+                emissive: segment.color,
+                emissiveIntensity: 0.5,
+                metalness: 0.1,
+                roughness: 0.2,
+                envMapIntensity: 1
+              })}
+              castShadow
+            />
+            {/* Point light at column top */}
+            <pointLight
+              position={[-4.15, 4, -(index * SEGMENT_LENGTH + 16)]}
+              intensity={0.5}
+              distance={4}
+              color={segment.color}
+            />
+          </group>
+        ))}
+
+        {/* End wall with rounded corners */}
+        <group>
           <mesh
-            key={`right-${index}`}
-            position={[-4.15, 0.15, -(index * SEGMENT_LENGTH + 16)]}
+            position={[0, 0.15, -(length * SEGMENT_LENGTH) + 2]}
             geometry={boxGeometry}
             material={new THREE.MeshStandardMaterial({
-              color: segment.color,
+              color: multiplierSegments[multiplierSegments.length - 1].color,
               metalness: 0.3,
               roughness: 0.4,
               envMapIntensity: 0.5
             })}
-            scale={[0.3, 0.3, SEGMENT_LENGTH]}
+            scale={[8, 0.3, 0.3]}
             receiveShadow
           />
-        ))}
-
-        {/* End wall */}
-        <mesh
-          position={[0, 0.15, -(length * SEGMENT_LENGTH) + 2]}
-          geometry={boxGeometry}
-          material={new THREE.MeshStandardMaterial({
-            color: multiplierSegments[multiplierSegments.length - 1].color,
-            metalness: 0.3,
-            roughness: 0.4,
-            envMapIntensity: 0.5
-          })}
-          scale={[8, 0.3, 0.3]}
-          receiveShadow
-        />
+          {/* Rounded corners for end wall */}
+          <mesh
+            position={[4, 0.15, -(length * SEGMENT_LENGTH) + 2]}
+            geometry={roundedWallGeometry}
+            material={new THREE.MeshStandardMaterial({
+              color: multiplierSegments[multiplierSegments.length - 1].color,
+              metalness: 0.3,
+              roughness: 0.4,
+              envMapIntensity: 0.5
+            })}
+            scale={[1, 0.3, 1]}
+            castShadow
+          />
+          <mesh
+            position={[-4, 0.15, -(length * SEGMENT_LENGTH) + 2]}
+            geometry={roundedWallGeometry}
+            material={new THREE.MeshStandardMaterial({
+              color: multiplierSegments[multiplierSegments.length - 1].color,
+              metalness: 0.3,
+              roughness: 0.4,
+              envMapIntensity: 0.5
+            })}
+            scale={[1, 0.3, 1]}
+            castShadow
+          />
+        </group>
 
         {/* Floor collider */}
         <CuboidCollider
           args={[4, 0.1, SEGMENT_LENGTH * length]}
           position={[0, -0.1, -(length * 8) + 2]}
-          restitution={0.2}
-          friction={1}
+          restitution={0.4}
+          friction={0.2}
         />
       </RigidBody>
     </>
@@ -529,7 +793,7 @@ function MovingWall({ position, range, speed, horizontal = true }) {
   })
 
   return (
-    <RigidBody ref={wall} type="kinematicPosition" restitution={0.2} friction={0}>
+    <RigidBody ref={wall} type="kinematicPosition" restitution={0.6} friction={0.1}>
       <mesh
         geometry={boxGeometry}
         material={new THREE.MeshPhongMaterial({
@@ -558,7 +822,7 @@ function SpinningWall({ position, speed }) {
   })
 
   return (
-    <RigidBody ref={wall} type="kinematicPosition" restitution={0.2} friction={0} position={position}>
+    <RigidBody ref={wall} type="kinematicPosition" restitution={0.6} friction={0.1} position={position}>
       <mesh
         geometry={boxGeometry}
         material={new THREE.MeshPhongMaterial({
@@ -578,7 +842,7 @@ const bollardGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 32)
 
 function Bollard({ position }) {
   return (
-    <RigidBody type="fixed" restitution={0.2} friction={0}>
+    <RigidBody type="fixed" restitution={0.6} friction={0.1}>
       <mesh
         geometry={bollardGeometry}
         material={new THREE.MeshPhongMaterial({
@@ -710,17 +974,8 @@ export function Level() {
     <>
       <color attach="background" args={['#130413']} />
 
-
-      <color attach="background" args={['#1a1a2e']} />
-      {/* <fog attach="fog" args={['#1a1a2e', 10, 200]} /> */}
       <ambientLight intensity={0.75} />
-      {/* <EffectComposer>
-        <DepthOfField
-          focusDistance={0.01}
-          focalLength={0.2}
-          bokehScale={3}
-        />
-      </EffectComposer> */}
+
       <BlockStart position={[0, 0, 0]} />
       <TrackSegments />
       <MovingObstacles />
