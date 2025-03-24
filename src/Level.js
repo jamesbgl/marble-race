@@ -3,7 +3,6 @@ import { CuboidCollider, RigidBody } from '@react-three/rapier'
 import { Float, Text, useGLTF, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRef, useState, useMemo, useEffect } from 'react'
-import { EffectComposer, DepthOfField, Noise, Vignette } from '@react-three/postprocessing'
 import useGame from './stores/useGame.js'
 
 THREE.ColorManagement.legacyMode = false
@@ -53,6 +52,7 @@ let pingBuffer
 let chargeBuffer
 let fireBuffer
 let cashInBuffer
+let collisionBuffer
 let audioSources = []
 let chargeSource = null
 let chargeGainNode = null // Add global reference to charge gain node
@@ -65,6 +65,20 @@ const initAudio = async () => {
   
   try {
     const sampleRate = audioContext.sampleRate
+
+    // Create collision sound (soft impact)
+    const collisionDuration = 0.1
+    const collisionNumSamples = collisionDuration * sampleRate
+    collisionBuffer = audioContext.createBuffer(1, collisionNumSamples, sampleRate)
+    const collisionData = collisionBuffer.getChannelData(0)
+    
+    for (let i = 0; i < collisionNumSamples; i++) {
+      const t = i / sampleRate
+      // Create a soft impact sound with white noise and low frequency
+      const whiteNoise = Math.random() * 2 - 1
+      const lowFreq = Math.sin(2 * Math.PI * 100 * t)
+      collisionData[i] = (whiteNoise * 0.3 + lowFreq * 0.7) * Math.exp(-30 * t)
+    }
 
     // Create ping sound (existing)
     const pingDuration = 0.08
@@ -248,6 +262,41 @@ const playCashInSound = () => {
   source.start(0)
 }
 
+// Function to play collision sound
+const playCollisionSound = (impactSpeed) => {
+  if (!audioContext || !collisionBuffer) return
+
+  // Find an available source from the pool
+  const audioSource = audioSources.find(s => !s.inUse)
+  if (!audioSource) return // All sources are in use
+
+  // Mark the source as in use
+  audioSource.inUse = true
+
+  // Create a new source
+  const newSource = audioContext.createBufferSource()
+  newSource.buffer = collisionBuffer
+  
+  // Adjust volume and pitch based on impact speed
+  const volume = Math.min(0.3, impactSpeed * 0.1)
+  const pitch = 1 + (impactSpeed * 0.05)
+  
+  audioSource.gainNode.gain.value = volume
+  newSource.playbackRate.value = pitch
+  
+  // Connect the new source
+  newSource.connect(audioSource.gainNode)
+  
+  // Play immediately
+  newSource.start(0)
+  
+  // Clean up after the sound plays
+  newSource.onended = () => {
+    audioSource.inUse = false
+    audioSource.source = newSource
+  }
+}
+
 // Export the sound functions
 export const soundEffects = {
   playFireSound,
@@ -255,7 +304,8 @@ export const soundEffects = {
   updateChargingSound,
   stopChargingSound,
   playPing,
-  playCashInSound
+  playCashInSound,
+  playCollisionSound
 }
 
 function BlockStart({ position = [0, 0, 0] }) {
@@ -837,49 +887,6 @@ function SpinningWall({ position, speed }) {
   )
 }
 
-// Geometry for bollards
-const bollardGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 32)
-
-function Bollard({ position }) {
-  return (
-    <RigidBody type="fixed" restitution={0.6} friction={0.1}>
-      <mesh
-        geometry={bollardGeometry}
-        material={new THREE.MeshPhongMaterial({
-          color: '#22c55e',
-          shininess: 60,
-          specular: new THREE.Color(0x444444)
-        })}
-        position={[position[0], 0.6, position[2]]}
-        castShadow
-      />
-    </RigidBody>
-  )
-}
-
-function BollardRow({ zPosition, count = 3 }) {
-  const positions = useMemo(() => {
-    // Generate random x positions between -2.5 and 2.5, but ensure they're spread out
-    const spacing = 5 / (count - 1) // Total width of 5 units (-2.5 to 2.5)
-    return Array(count).fill(0).map((_, i) => {
-      const baseX = -2.5 + i * spacing
-      const randomOffset = (Math.random() - 0.5) * (spacing * 0.5) // Random offset within half the spacing
-      return baseX + randomOffset
-    })
-  }, [count])
-
-  return (
-    <>
-      {positions.map((x, index) => (
-        <Bollard
-          key={index}
-          position={[x, 0, zPosition]}
-        />
-      ))}
-    </>
-  )
-}
-
 function MovingObstacles() {
   // Generate random x positions for spinning walls between -3 and 3
   const spinningWallsX = useMemo(() => {
@@ -945,27 +952,10 @@ function MovingObstacles() {
         position={[spinningWallsX[3], 0.5, -(32 + obstacleSpacing * 4)]} 
         speed={-2.2}
       />
-
-      {/* Bollard rows - placed between spinning walls */}
-      <BollardRow 
-        zPosition={-56}
-        count={3}
-      />
-      <BollardRow 
-        zPosition={-88}
-        count={4}
-      />
-      <BollardRow 
-        zPosition={-120}
-        count={3}
-      />
-      <BollardRow 
-        zPosition={-152}
-        count={4}
-      />
     </>
   )
 }
+
 export function Level() {
   // Calculate total segments: 1 start segment + multiplier segments
   const totalSegments = 1 + multiplierSegments.length

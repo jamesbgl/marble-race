@@ -12,6 +12,8 @@ export default function Player() {
   const [subscribeKeys, getKeys] = useKeyboardControls()
   const { rapier, world } = useRapier()
   const rapierWorld = world.raw()
+  const lastCollisionTime = useRef(0)
+  const lastCollisionSpeed = useRef(0)
 
   const [aimDirection, setAimDirection] = useState(0)
   const [hasLaunched, setHasLaunched] = useState(false)
@@ -31,6 +33,8 @@ export default function Player() {
   const phase = useGame((state) => state.phase)
   const setPower = useGame((state) => state.setPower)
   const setCurrentMultiplier = useGame((state) => state.setCurrentMultiplier)
+
+  const lastVelocity = useRef(new THREE.Vector3())
 
   const reset = () => {
     body.current.setTranslation({ x: 0, y: 1, z: 0 })
@@ -122,6 +126,33 @@ export default function Player() {
   useFrame((state, delta) => {
     const keys = getKeys()
     const bodyPosition = body.current?.translation() || new THREE.Vector3(0, 1, 0)
+    const currentVelocity = body.current?.linvel() || new THREE.Vector3()
+
+    // Check for collisions by monitoring velocity changes
+    if (hasLaunched) {
+      const velocityDiff = currentVelocity.clone().sub(lastVelocity.current)
+      const speedDiff = velocityDiff.length()
+      
+      // If there's a significant velocity change, it might be a collision
+      if (speedDiff > 2) {
+        const now = performance.now()
+        // Debounce collision sounds (minimum 50ms between sounds)
+        if (now - lastCollisionTime.current > 50) {
+          const speed = Math.sqrt(currentVelocity.x * currentVelocity.x + 
+                                currentVelocity.y * currentVelocity.y + 
+                                currentVelocity.z * currentVelocity.z)
+          
+          // Only play sound if impact speed is significant
+          if (speed > 2) {
+            soundEffects.playCollisionSound(speed)
+            lastCollisionTime.current = now
+          }
+        }
+      }
+    }
+    
+    // Update last velocity for next frame
+    lastVelocity.current.copy(currentVelocity)
 
     /**
      * Camera
