@@ -12,7 +12,7 @@ export default create(
       finalMultiplier: 0,
       stake: 1, // Fixed stake amount
       winnings: 0, // Track winnings
-      balance: 50, // Starting balance
+      balance: 100, // Increased starting balance for better player experience
 
       /**
        * Time

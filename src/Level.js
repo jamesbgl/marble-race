@@ -31,19 +31,19 @@ const SEGMENT_LENGTH = 16 // Length of each track segment
 
 // Define multiplier segments (from the image)
 const multiplierSegments = [
-  { value: 0.2, color: '#1E1E1E', textColor: '#4ADE80' },
-  { value: 0.4, color: '#1E1E1E', textColor: '#4ADE80' },
-  { value: 0.8, color: '#1E1E1E', textColor: '#4ADE80' },
-  { value: 1.5, color: '#1E1E1E', textColor: '#4ADE80' },
-  { value: 4, color: '#1E1E1E', textColor: '#4ADE80' },
-  { value: 12, color: '#86EFAC', textColor: 'black' }, // Mint green
-  { value: 80, color: '#ECFCCB', textColor: 'black' }, // Yellow-green
-  { value: 0.2, color: '#1E1E1E', textColor: '#4ADE80' },
-  { value: 20, color: '#8B5CF6', textColor: 'white' },
-  { value: 0.4, color: '#1E1E1E', textColor: '#4ADE80' },
-  { value: 50, color: '#8B5CF6', textColor: 'white' }, // Purple
-  { value: 0.8, color: '#1E1E1E', textColor: '#4ADE80' }, // Dark with neon green text
-  { value: 100, color: '#FF7F5C', textColor: 'white' } // Orange
+  { value: 0.2, color: '#1E1E1E', textColor: '#4ADE80' },  // Common, low risk
+  { value: 0.4, color: '#1E1E1E', textColor: '#4ADE80' },  // Common, low risk
+  { value: 0.8, color: '#1E1E1E', textColor: '#4ADE80' },  // Common, low risk
+  { value: 1.5, color: '#1E1E1E', textColor: '#4ADE80' },  // Common, medium risk
+  { value: 2.5, color: '#1E1E1E', textColor: '#4ADE80' },  // Common, medium risk
+  { value: 4, color: '#86EFAC', textColor: 'black' },      // Uncommon, high risk
+  { value: 8, color: '#ECFCCB', textColor: 'black' },      // Rare, high risk
+  { value: 0.2, color: '#1E1E1E', textColor: '#4ADE80' },  // Common, low risk
+  { value: 12, color: '#8B5CF6', textColor: 'white' },     // Very rare, high risk
+  { value: 0.4, color: '#1E1E1E', textColor: '#4ADE80' },  // Common, low risk
+  { value: 20, color: '#8B5CF6', textColor: 'white' },     // Extremely rare, high risk
+  { value: 0.8, color: '#1E1E1E', textColor: '#4ADE80' },  // Common, low risk
+  { value: 50, color: '#FF7F5C', textColor: 'white' }      // Ultra rare, high risk
 ]
 
 // Create audio context and sounds
@@ -1189,19 +1189,76 @@ function MovingObstacles() {
   const spinningWallsX = useMemo(() => {
     return Array(4).fill(0).map(() => (Math.random() * 4 - 2))
   }, [])
-  
-  const obstacleSpacing = multiplierSegments.length * SEGMENT_LENGTH / 5
 
-  // Fixed boost pad positions
+  // Define obstacle pools with balanced difficulty levels
+  const obstaclePools = useMemo(() => {
+    return {
+      easy: [
+        { type: 'MovingWall', range: 2.0, speed: 0.5, horizontal: true },
+        { type: 'SpinningWall', speed: 1.5 },
+        { type: 'BouncingPlatform', bounceStrength: 10 },
+        { type: 'RotatingCylinder', speed: 1.8 }
+      ],
+      medium: [
+        { type: 'MovingWall', range: 2.5, speed: 0.8, horizontal: true },
+        { type: 'SpinningWall', speed: 2.0 },
+        { type: 'BouncingPlatform', bounceStrength: 15 },
+        { type: 'RotatingCylinder', speed: 2.2 },
+        { type: 'SwingingHammer', swingSpeed: 0.8, swingRange: Math.PI / 3 }
+      ],
+      hard: [
+        { type: 'MovingWall', range: 2.8, speed: 1.2, horizontal: true },
+        { type: 'SpinningWall', speed: 2.5 },
+        { type: 'BouncingPlatform', bounceStrength: 20 },
+        { type: 'RotatingCylinder', speed: 2.8 },
+        { type: 'SwingingHammer', swingSpeed: 1.2, swingRange: Math.PI / 2.5 }
+      ]
+    }
+  }, [])
+
+  // Generate random obstacle positions and types
+  const obstacles = useMemo(() => {
+    const positions = [
+      { x: 0, z: -32 },
+      { x: 0, z: -48 },
+      { x: 0, z: -64 },
+      { x: 0, z: -96 },
+      { x: 0, z: -128 },
+      { x: 0, z: -160 }
+    ]
+
+    return positions.map((pos, index) => {
+      // Determine difficulty based on position (earlier = easier)
+      let difficulty
+      if (index < 2) difficulty = 'easy'
+      else if (index < 4) difficulty = 'medium'
+      else difficulty = 'hard'
+
+      // Randomly select obstacle from appropriate pool
+      const pool = obstaclePools[difficulty]
+      const obstacle = pool[Math.floor(Math.random() * pool.length)]
+
+      // Add slight random position variation
+      const xVariation = (Math.random() - 0.5) * 2
+      const zVariation = (Math.random() - 0.5) * 4
+
+      return {
+        ...obstacle,
+        position: [pos.x + xVariation, 0.5, pos.z + zVariation]
+      }
+    })
+  }, [obstaclePools])
+
+  // Fixed boost pad positions with balanced values
   const boostPads = [
-    { x: 0, z: -24, boost: 3 },     // Early gentle boost before first hammer
-    { x: -2, z: -56, boost: 4 },    // Help navigate around first hammer
-    { x: 2, z: -88, boost: 4 },     // Recovery path before second hammer
-    { x: -2, z: -120, boost: 5 },   // Help with third hammer section
-    { x: 0, z: -152, boost: 5 },    // Strategic boost near high multiplier
-    { x: 2, z: -184, boost: 6 }     // Final boost for end game
+    { x: 0, z: -24, boost: 3 },     // Early gentle boost
+    { x: -2, z: -56, boost: 3.5 },  // Help with first section
+    { x: 2, z: -88, boost: 4 },     // Recovery path
+    { x: -2, z: -120, boost: 4.5 }, // Help with medium section
+    { x: 0, z: -152, boost: 5 },    // Strategic boost
+    { x: 2, z: -184, boost: 5.5 }   // Final boost
   ]
-  
+
   return (
     <>
       {/* Fixed boost pads */}
@@ -1213,90 +1270,58 @@ function MovingObstacles() {
         />
       ))}
 
-      {/* Existing horizontal moving walls */}
-      <MovingWall 
-        position={[0, 0.5, -32]} 
-        range={3} 
-        speed={0.8}
-        horizontal={true}
-      />
-      <MovingWall 
-        position={[0, 0.5, -48]} 
-        range={3.2} 
-        speed={1.2}
-        horizontal={true}
-      />
-      <MovingWall 
-        position={[0, 0.5, -64]} 
-        range={2} 
-        speed={0.3}
-        horizontal={true}
-      />
-      <MovingWall 
-        position={[0, 0.5, -96]} 
-        range={3.3} 
-        speed={0.5}
-        horizontal={true}
-      />
-      <MovingWall 
-        position={[0, 0.5, -128]} 
-        range={3} 
-        speed={1.5}
-        horizontal={true}
-      />
-      <MovingWall 
-        position={[0, 0.5, -160]} 
-        range={2.8} 
-        speed={2}
-        horizontal={true}
-      />
+      {/* Render randomized obstacles */}
+      {obstacles.map((obstacle, index) => {
+        const { type, position, ...props } = obstacle
 
-      {/* Spinning walls */}
-      <SpinningWall 
-        position={[spinningWallsX[0], 0.5, -(32 + obstacleSpacing)]} 
-        speed={2}
-      />
-      <SpinningWall 
-        position={[spinningWallsX[1], 0.5, -(32 + obstacleSpacing * 2)]} 
-        speed={-2.5}
-      />
-      <SpinningWall 
-        position={[spinningWallsX[2], 0.5, -(32 + obstacleSpacing * 3)]} 
-        speed={3}
-      />
-      <SpinningWall 
-        position={[spinningWallsX[3], 0.5, -(32 + obstacleSpacing * 4)]} 
-        speed={-2.2}
-      />
-
-      {/* New obstacles */}
-      <BouncingPlatform position={[0, 0.5, -80]} />
-      <RotatingCylinder position={[2, 0.5, -112]} speed={3} />
-      <SpeedBoost position={[-2, 0.5, -144]} boostStrength={25} />
-      <BouncingPlatform position={[0, 0.5, -176]} />
-      <RotatingCylinder position={[-2, 0.5, -192]} speed={-2.5} />
-
-      {/* Giant swinging hammers at strategic positions */}
-      <SwingingHammer 
-        position={[0, 8, -64]} 
-        swingSpeed={1.0} 
-        swingRange={Math.PI / 2.5}
-      />
-      <SwingingHammer 
-        position={[0, 8, -96]} 
-        swingSpeed={1.5} 
-        swingRange={Math.PI / 2}
-      />
-      <SwingingHammer 
-        position={[0, 8, -128]} 
-        swingSpeed={1.2} 
-        swingRange={Math.PI / 2}
-      />
-      <SwingingHammer 
-        position={[0, 8, -176]} 
-        swingSpeed={0.8} 
-        swingRange={Math.PI / 2.2}
-      />
+        switch (type) {
+          case 'MovingWall':
+            return (
+              <MovingWall
+                key={`moving-wall-${index}`}
+                position={position}
+                range={props.range}
+                speed={props.speed}
+                horizontal={props.horizontal}
+              />
+            )
+          case 'SpinningWall':
+            return (
+              <SpinningWall
+                key={`spinning-wall-${index}`}
+                position={position}
+                speed={props.speed}
+              />
+            )
+          case 'BouncingPlatform':
+            return (
+              <BouncingPlatform
+                key={`bouncing-platform-${index}`}
+                position={position}
+                bounceStrength={props.bounceStrength}
+              />
+            )
+          case 'RotatingCylinder':
+            return (
+              <RotatingCylinder
+                key={`rotating-cylinder-${index}`}
+                position={position}
+                speed={props.speed}
+              />
+            )
+          case 'SwingingHammer':
+            return (
+              <SwingingHammer
+                key={`swinging-hammer-${index}`}
+                position={[position[0], 8, position[2]]}
+                swingSpeed={props.swingSpeed}
+                swingRange={props.swingRange}
+              />
+            )
+          default:
+            return null
+        }
+      })}
     </>
   )
 }
