@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.css": "/marble-race/static/css/main.90542d60.css",
-    "main.js": "/marble-race/static/js/main.ec22e7fd.js",
-    "index.html": "/marble-race/index.html",
-    "main.90542d60.css.map": "/marble-race/static/css/main.90542d60.css.map",
-    "main.ec22e7fd.js.map": "/marble-race/static/js/main.ec22e7fd.js.map"
+    "main.css": "/static/css/main.90542d60.css",
+    "main.js": "/static/js/main.ec22e7fd.js",
+    "index.html": "/index.html",
+    "main.90542d60.css.map": "/static/css/main.90542d60.css.map",
+    "main.ec22e7fd.js.map": "/static/js/main.ec22e7fd.js.map"
   },
   "entrypoints": [
     "static/css/main.90542d60.css",
